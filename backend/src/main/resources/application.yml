@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://192.168.100.109:15432/vendas_futebol}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://177.203.121.234:15432/vendas_futebol}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:Eunaoseiasenha22}
     driver-class-name: org.postgresql.Driver
