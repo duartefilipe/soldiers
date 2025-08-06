@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  soldiers-backend:
+    image: maven:3.8.1-openjdk-11
+    container_name: soldiers-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    working_dir: /home/anakin/Documentos/Codigos/soldiers
+    volumes:
+      - /home/anakin/Documentos/Codigos:/home/anakin/Documentos/Codigos
+    command: >
+      sh -c "
+      if [ ! -d soldiers ]; then
+        git clone https://github.com/duartefilipe/soldiers.git;
+      fi &&
+      cd soldiers/backend &&
+      mvn clean package -DskipTests &&
+      java -jar target/soldiers-0.0.1-SNAPSHOT.jar
+      "
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://192.168.100.109:15432/vendas_futebol
+      - SPRING_DATASOURCE_PASSWORD=Eunaoseiasenha22
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  soldiers-frontend:
+    image: node:18-alpine
+    container_name: soldiers-frontend
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+    working_dir: /home/anakin/Documentos/Codigos/soldiers
+    volumes:
+      - /home/anakin/Documentos/Codigos:/home/anakin/Documentos/Codigos
+    command: >
+      sh -c "
+      if [ ! -d soldiers ]; then
+        git clone https://github.com/duartefilipe/soldiers.git;
+      fi &&
+      cd soldiers/frontend &&
+      npm install &&
+      npm run dev -- --host 0.0.0.0
+      "
+    depends_on:
+      - soldiers-backend 
