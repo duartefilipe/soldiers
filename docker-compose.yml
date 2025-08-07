@@ -8,11 +8,9 @@ services:
       dockerfile: Dockerfile
     container_name: soldiers_backend
     ports:
-      - "8083:8080"
+      - "0.0.0.0:8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://177.203.121.234:15432/vendas_futebol
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: Eunaoseiasenha22
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://177.203.121.234:15432/vendas_futebol
     restart: unless-stopped
 
   # Frontend React
@@ -22,7 +20,7 @@ services:
       dockerfile: Dockerfile
     container_name: soldiers_frontend
     ports:
-      - "8084:5173"
+      - "0.0.0.0:8084:8084"
     environment:
       - VITE_API_URL=http://177.203.121.234:8083
     depends_on:

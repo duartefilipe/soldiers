@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expor porta
-EXPOSE 5173
+EXPOSE 8084
 
 # Comando para executar em modo de desenvolvimento
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8084"] 

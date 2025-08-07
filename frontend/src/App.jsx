@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { PrivateRoute } from './components/PrivateRoute';
 import { Layout } from './components/Layout';
+import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
@@ -12,6 +13,7 @@ import { GameSchedule } from './pages/GameSchedule';
 import { GameSales } from './pages/GameSales';
 import { History } from './pages/History';
 import { Users } from './pages/Users';
+import { News } from './pages/News';
 
 function App() {
   return (
@@ -20,8 +22,8 @@ function App() {
         <div className="App">
           <Toaster position="top-right" />
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route
               path="/dashboard"
               element={
@@ -98,6 +100,16 @@ function App() {
                 <PrivateRoute requireAdmin={true}>
                   <Layout>
                     <Users />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/news"
+              element={
+                <PrivateRoute requireAdmin={true}>
+                  <Layout>
+                    <News />
                   </Layout>
                 </PrivateRoute>
               }

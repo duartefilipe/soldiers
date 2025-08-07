@@ -19,7 +19,8 @@ spring:
       password: admin123
 
 server:
-  port: 8080
+  port: 8083
+  address: 0.0.0.0
 
 logging:
   level:

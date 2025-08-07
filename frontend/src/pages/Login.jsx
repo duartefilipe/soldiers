@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Shield } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import logoLogin from '../assets/logo-login.svg';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -34,8 +35,8 @@ export function Login() {
       <div className="max-w-md w-full">
         <div className="card">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-              <Shield className="w-8 h-8 text-primary-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
+              <img src={logoLogin} alt="Soldiers Logo" className="w-16 h-16" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Soldiers</h1>
             <p className="text-gray-600 mt-2">Sistema de Vendas - Futebol Americano</p>

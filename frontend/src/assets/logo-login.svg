@@ -1,0 +1,23 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo preto -->
+  <rect width="200" height="200" fill="black"/>
+  
+  <!-- Cabeça do soldado -->
+  <g transform="translate(80, 60)">
+    <!-- Capacete verde-oliva -->
+    <path d="M 20 30 Q 30 15 40 20 Q 50 25 45 35 Q 40 45 30 40 Q 20 35 20 30 Z" 
+          fill="#556b2f" stroke="white" stroke-width="2"/>
+    
+    <!-- Cabeça preta -->
+    <ellipse cx="30" cy="50" rx="10" ry="15" fill="black"/>
+    
+    <!-- Linhas brancas do rosto -->
+    <line x1="25" y1="45" x2="35" y2="45" stroke="white" stroke-width="2"/> <!-- Olho -->
+    <line x1="28" y1="50" x2="32" y2="50" stroke="white" stroke-width="1.5"/> <!-- Nariz -->
+    <path d="M 25 55 Q 30 58 35 55" stroke="white" stroke-width="1.5" fill="none"/> <!-- Boca -->
+    
+    <!-- Contornos faciais -->
+    <path d="M 20 40 Q 25 35 30 40" stroke="white" stroke-width="1" fill="none"/>
+    <path d="M 30 40 Q 35 35 40 40" stroke="white" stroke-width="1" fill="none"/>
+  </g>
+</svg> 

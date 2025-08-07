@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   User,
-  Clock
+  Clock,
+  Newspaper
 } from 'lucide-react';
 
 const menuItems = [
@@ -22,6 +23,7 @@ const menuItems = [
   { path: '/schedule', icon: Clock, label: 'Agenda' },
   { path: '/sales', icon: ShoppingCart, label: 'Nova Venda' },
   { path: '/history', icon: History, label: 'Histórico' },
+  { path: '/news', icon: Newspaper, label: 'Notícias', adminOnly: true },
   { path: '/users', icon: Users, label: 'Usuários', adminOnly: true },
 ];
 
