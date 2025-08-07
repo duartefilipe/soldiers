@@ -99,13 +99,7 @@ export function Login() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 text-center">
-              <strong>Credenciais de teste:</strong><br />
-              Email: admin@soldiers.com<br />
-              Senha: admin123
-            </p>
-          </div>
+
         </div>
       </div>
     </div>
