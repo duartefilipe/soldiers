@@ -13,7 +13,9 @@ import {
   X,
   User,
   Clock,
-  Newspaper
+  Newspaper,
+  DollarSign,
+  MapPin
 } from 'lucide-react';
 
 const menuItems = [
@@ -23,6 +25,8 @@ const menuItems = [
   { path: '/schedule', icon: Clock, label: 'Agenda' },
   { path: '/sales', icon: ShoppingCart, label: 'Nova Venda' },
   { path: '/history', icon: History, label: 'Histórico' },
+  { path: '/budget', icon: DollarSign, label: 'Orçamento' },
+  { path: '/trips', icon: MapPin, label: 'Viagens' },
   { path: '/news', icon: Newspaper, label: 'Notícias', adminOnly: true },
   { path: '/users', icon: Users, label: 'Usuários', adminOnly: true },
 ];

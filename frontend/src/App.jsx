@@ -14,6 +14,8 @@ import { GameSales } from './pages/GameSales';
 import { History } from './pages/History';
 import { Users } from './pages/Users';
 import { News } from './pages/News';
+import { Budget } from './pages/Budget';
+import { Trips } from './pages/Trips';
 
 function App() {
   return (
@@ -90,6 +92,26 @@ function App() {
                 <PrivateRoute>
                   <Layout>
                     <History />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/budget"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Budget />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/trips"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Trips />
                   </Layout>
                 </PrivateRoute>
               }

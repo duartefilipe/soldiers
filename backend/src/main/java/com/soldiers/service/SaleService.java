@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,13 +18,15 @@ public class SaleService {
     private final GameEventRepository gameEventRepository;
     private final ProductService productService;
     private final UserService userService;
+    private final BudgetService budgetService;
 
     public SaleService(SaleRepository saleRepository, GameEventRepository gameEventRepository,
-                      ProductService productService, UserService userService) {
+                      ProductService productService, UserService userService, BudgetService budgetService) {
         this.saleRepository = saleRepository;
         this.gameEventRepository = gameEventRepository;
         this.productService = productService;
         this.userService = userService;
+        this.budgetService = budgetService;
     }
 
     @Transactional
@@ -48,7 +51,32 @@ public class SaleService {
             productService.decreaseStock(product.getId(), itemRequest.getQuantity());
         }
 
-        return saleRepository.save(sale);
+        // Salva a venda
+        Sale savedSale = saleRepository.save(sale);
+
+        // Cria uma entrada no orçamento para a venda
+        createBudgetEntryForSale(savedSale, seller);
+
+        return savedSale;
+    }
+
+    private void createBudgetEntryForSale(Sale sale, User seller) {
+        try {
+            // Cria uma entrada no orçamento do tipo INCOME
+            Budget budgetEntry = new Budget();
+            budgetEntry.setDescription("Venda - " + sale.getGameEvent().getName() + " - " + sale.getItems().size() + " item(s)");
+            budgetEntry.setAmount(sale.getTotalAmount());
+            budgetEntry.setType(Budget.BudgetType.INCOME);
+            budgetEntry.setUser(seller);
+            budgetEntry.setDate(LocalDateTime.now());
+            budgetEntry.setNotes("Venda ID: " + sale.getId() + " - Jogo: " + sale.getGameEvent().getName());
+
+            // Salva a entrada no orçamento
+            budgetService.createBudgetFromSale(budgetEntry);
+        } catch (Exception e) {
+            // Log do erro, mas não falha a venda se o orçamento falhar
+            System.err.println("Erro ao criar entrada no orçamento para venda " + sale.getId() + ": " + e.getMessage());
+        }
     }
 
     public List<Sale> getAllSales() {

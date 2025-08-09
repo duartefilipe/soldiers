@@ -22,7 +22,7 @@ services:
     ports:
       - "0.0.0.0:8084:8084"
     environment:
-      - VITE_API_URL=http://177.203.121.234:8083
+      - VITE_API_URL=http://localhost:8083
     depends_on:
       - backend
     restart: unless-stopped 
