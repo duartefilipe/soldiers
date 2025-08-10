@@ -9,13 +9,13 @@ import { Dashboard } from './pages/Dashboard';
 import { Products } from './pages/Products';
 import { Games } from './pages/Games';
 import { NewSale } from './pages/NewSale';
-import { GameSchedule } from './pages/GameSchedule';
-import { GameSales } from './pages/GameSales';
 import { History } from './pages/History';
 import { Users } from './pages/Users';
 import { News } from './pages/News';
 import { Budget } from './pages/Budget';
 import { Trips } from './pages/Trips';
+import { TripBudget } from './pages/TripBudget';
+import { Team } from './pages/Team';
 
 function App() {
   return (
@@ -67,21 +67,11 @@ function App() {
               }
             />
             <Route
-              path="/schedule"
+              path="/sales/:gameId"
               element={
                 <PrivateRoute>
                   <Layout>
-                    <GameSchedule />
-                  </Layout>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/game/:gameId/sales"
-              element={
-                <PrivateRoute>
-                  <Layout>
-                    <GameSales />
+                    <NewSale />
                   </Layout>
                 </PrivateRoute>
               }
@@ -117,6 +107,16 @@ function App() {
               }
             />
             <Route
+              path="/trips/:tripId/budget"
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <TripBudget />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="/users"
               element={
                 <PrivateRoute requireAdmin={true}>
@@ -132,6 +132,16 @@ function App() {
                 <PrivateRoute requireAdmin={true}>
                   <Layout>
                     <News />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/team"
+              element={
+                <PrivateRoute requireAdmin={true}>
+                  <Layout>
+                    <Team />
                   </Layout>
                 </PrivateRoute>
               }

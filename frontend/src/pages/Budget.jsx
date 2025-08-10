@@ -7,7 +7,8 @@ import {
   Wallet,
   Edit,
   Trash2,
-  Filter
+  Filter,
+  Download
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '../services/api';
@@ -63,9 +64,9 @@ export function Budget() {
   const loadBalance = async () => {
     try {
       const [balanceRes, incomeRes, expensesRes] = await Promise.all([
-        api.get('/budgets/balance/current'),
-        api.get('/budgets/income/total'),
-        api.get('/budgets/expenses/total')
+        api.get('/budgets/balance'),
+        api.get('/budgets/income'),
+        api.get('/budgets/expenses')
       ]);
       
       setCurrentBalance(balanceRes.data || 0);
@@ -136,6 +137,29 @@ export function Budget() {
     });
   };
 
+  const handleExportExcel = async () => {
+    try {
+      const response = await api.get('/budgets/export/excel', {
+        responseType: 'blob'
+      });
+      
+      // Criar link para download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'orcamento_soldiers.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Arquivo Excel baixado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao baixar arquivo Excel');
+      console.error('Erro ao exportar:', error);
+    }
+  };
+
   const filteredBudgets = budgets.filter(budget => {
     if (filter === 'ALL') return true;
     return budget.type === filter;
@@ -166,6 +190,43 @@ export function Budget() {
     
     return acc;
   }, []);
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'SCHEDULED':
+        return 'Agendado';
+      case 'IN_PROGRESS':
+        return 'Em andamento';
+      case 'FINISHED':
+        return 'Finalizado';
+      case 'CANCELLED':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  };
+
+  const extractSellerName = (budget) => {
+    // Se for uma venda (INCOME e descrição contém "Venda")
+    if (budget.type === 'INCOME' && 
+        budget.description && 
+        budget.description.includes('Venda')) {
+      
+      // Extrair nome do vendedor da descrição
+      if (budget.description.includes('Vendedor:')) {
+        const parts = budget.description.split('Vendedor:');
+        if (parts.length > 1) {
+          return parts[1].trim();
+        }
+      }
+      
+      // Se não encontrar na descrição, usar o nome do usuário
+      return budget.userName || 'Não informado';
+    }
+    
+    // Para outros tipos de movimentação, retornar vazio
+    return '';
+  };
 
   return (
     <div className="p-6">
@@ -266,6 +327,14 @@ export function Budget() {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Movimentações</h3>
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportExcel}
+                className="bg-green-600 text-white px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+                title="Baixar Excel"
+              >
+                <Download className="w-4 h-4" />
+                Exportar Excel
+              </button>
               <Filter className="w-4 h-4 text-gray-400" />
               <select
                 value={filter}
@@ -295,6 +364,9 @@ export function Budget() {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Data
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Vendedor
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ações
@@ -332,6 +404,9 @@ export function Budget() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(budget.date).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {extractSellerName(budget)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">

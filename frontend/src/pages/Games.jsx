@@ -97,7 +97,7 @@ export function Games() {
         return 'bg-blue-100 text-blue-800';
       case 'IN_PROGRESS':
         return 'bg-yellow-100 text-yellow-800';
-      case 'COMPLETED':
+      case 'FINISHED':
         return 'bg-green-100 text-green-800';
       case 'CANCELLED':
         return 'bg-red-100 text-red-800';
@@ -112,8 +112,8 @@ export function Games() {
         return 'Agendado';
       case 'IN_PROGRESS':
         return 'Em andamento';
-      case 'COMPLETED':
-        return 'Concluído';
+      case 'FINISHED':
+        return 'Finalizado';
       case 'CANCELLED':
         return 'Cancelado';
       default:
@@ -292,7 +292,7 @@ export function Games() {
                   >
                     <option value="SCHEDULED">Agendado</option>
                     <option value="IN_PROGRESS">Em andamento</option>
-                    <option value="COMPLETED">Concluído</option>
+                    <option value="FINISHED">Finalizado</option>
                     <option value="CANCELLED">Cancelado</option>
                   </select>
                 </div>

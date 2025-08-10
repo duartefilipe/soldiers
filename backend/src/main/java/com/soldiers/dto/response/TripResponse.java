@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.soldiers.entity.TripExpense;
+import com.soldiers.dto.response.PlayerResponse;
+import com.soldiers.dto.response.TeamResponse;
 
 public class TripResponse {
     
@@ -17,9 +19,13 @@ public class TripResponse {
     private LocalDateTime returnDate;
     private TripStatus status;
     private BigDecimal totalCost;
+    private BigDecimal initialCost;
     private String userName;
     private String notes;
     private List<TripExpenseResponse> expenses;
+    private List<PlayerResponse> players;
+    private List<TeamResponse> teams;
+    private int totalParticipants;
     
     public TripResponse() {}
     
@@ -30,11 +36,23 @@ public class TripResponse {
         this.departureDate = trip.getDepartureDate();
         this.returnDate = trip.getReturnDate();
         this.status = trip.getStatus();
+        this.initialCost = trip.getInitialCost();
         this.userName = trip.getUser() != null ? trip.getUser().getName() : null;
         this.notes = trip.getNotes();
         this.expenses = trip.getExpenses() != null ? 
             trip.getExpenses().stream().map(TripExpenseResponse::new).collect(Collectors.toList()) : 
             null;
+        
+        // Adiciona jogadores e times
+        this.players = trip.getPlayers() != null ? 
+            trip.getPlayers().stream().map(PlayerResponse::new).collect(Collectors.toList()) : 
+            null;
+        
+        this.teams = trip.getTeams() != null ? 
+            trip.getTeams().stream().map(TeamResponse::new).collect(Collectors.toList()) : 
+            null;
+        
+        this.totalParticipants = trip.getTotalParticipants();
         
         // Calcula o totalCost dinamicamente a partir dos gastos
         if (trip.getExpenses() != null && !trip.getExpenses().isEmpty()) {
@@ -103,6 +121,14 @@ public class TripResponse {
         this.totalCost = totalCost;
     }
     
+    public BigDecimal getInitialCost() {
+        return initialCost;
+    }
+    
+    public void setInitialCost(BigDecimal initialCost) {
+        this.initialCost = initialCost;
+    }
+    
     public String getUserName() {
         return userName;
     }
@@ -125,5 +151,29 @@ public class TripResponse {
     
     public void setExpenses(List<TripExpenseResponse> expenses) {
         this.expenses = expenses;
+    }
+
+    public List<PlayerResponse> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<PlayerResponse> players) {
+        this.players = players;
+    }
+
+    public List<TeamResponse> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(List<TeamResponse> teams) {
+        this.teams = teams;
+    }
+
+    public int getTotalParticipants() {
+        return totalParticipants;
+    }
+
+    public void setTotalParticipants(int totalParticipants) {
+        this.totalParticipants = totalParticipants;
     }
 }

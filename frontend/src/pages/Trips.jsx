@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   Plus, 
   MapPin, 
@@ -8,13 +9,17 @@ import {
   Trash2,
   Filter,
   Eye,
-  Plus as PlusIcon
+  Plus as PlusIcon,
+  Wallet,
+  Users
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '../services/api';
 
 export function Trips() {
   const [trips, setTrips] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -28,7 +33,10 @@ export function Trips() {
     departureDate: '',
     returnDate: '',
     status: 'PLANNED',
-    notes: ''
+    initialCost: '',
+    notes: '',
+    playerIds: [],
+    teamIds: []
   });
 
   const [expenseFormData, setExpenseFormData] = useState({
@@ -37,16 +45,24 @@ export function Trips() {
     notes: ''
   });
 
+
+
   useEffect(() => {
     loadTrips();
   }, []);
 
   const loadTrips = async () => {
     try {
-      const response = await api.get('/trips');
-      setTrips(response.data);
+      const [tripsRes, playersRes, teamsRes] = await Promise.all([
+        api.get('/trips'),
+        api.get('/players'),
+        api.get('/teams')
+      ]);
+      setTrips(tripsRes.data);
+      setPlayers(playersRes.data);
+      setTeams(teamsRes.data);
     } catch (error) {
-      toast.error('Erro ao carregar viagens');
+      toast.error('Erro ao carregar dados');
     } finally {
       setLoading(false);
     }
@@ -117,7 +133,10 @@ export function Trips() {
       departureDate: trip.departureDate ? trip.departureDate.split('T')[0] : '',
       returnDate: trip.returnDate ? trip.returnDate.split('T')[0] : '',
       status: trip.status,
-      notes: trip.notes || ''
+      initialCost: trip.initialCost || '',
+      notes: trip.notes || '',
+      playerIds: trip.players ? trip.players.map(player => player.id) : [],
+      teamIds: trip.teams ? trip.teams.map(team => team.id) : []
     });
     setShowModal(true);
   };
@@ -139,6 +158,8 @@ export function Trips() {
     setShowExpenseModal(true);
   };
 
+
+
   const resetForm = () => {
     setFormData({
       destination: '',
@@ -146,8 +167,29 @@ export function Trips() {
       departureDate: '',
       returnDate: '',
       status: 'PLANNED',
-      notes: ''
+      initialCost: '',
+      notes: '',
+      playerIds: [],
+      teamIds: []
     });
+  };
+
+  const handlePlayerToggle = (playerId) => {
+    setFormData(prev => ({
+      ...prev,
+      playerIds: prev.playerIds.includes(playerId)
+        ? prev.playerIds.filter(id => id !== playerId)
+        : [...prev.playerIds, playerId]
+    }));
+  };
+
+  const handleTeamToggle = (teamId) => {
+    setFormData(prev => ({
+      ...prev,
+      teamIds: prev.teamIds.includes(teamId)
+        ? prev.teamIds.filter(id => id !== teamId)
+        : [...prev.teamIds, teamId]
+    }));
   };
 
   const resetExpenseForm = () => {
@@ -157,6 +199,8 @@ export function Trips() {
       notes: ''
     });
   };
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -249,7 +293,51 @@ export function Trips() {
               {trip.totalCost > 0 && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <DollarSign className="w-4 h-4" />
-                  <span>Total: R$ {parseFloat(trip.totalCost).toFixed(2)}</span>
+                  <span>Gastos: R$ {parseFloat(trip.totalCost).toFixed(2)}</span>
+                </div>
+              )}
+
+              {/* Participantes */}
+              {(trip.players && trip.players.length > 0) || (trip.teams && trip.teams.length > 0) ? (
+                <div className="flex items-start gap-2 text-sm text-gray-600">
+                  <Users className="w-4 h-4 mt-0.5" />
+                  <div className="flex-1">
+                    {trip.players && trip.players.length > 0 && (
+                      <div className="mb-1">
+                        <span className="font-medium">Jogadores:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {trip.players.map((player) => (
+                            <span
+                              key={player.id}
+                              className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
+                            >
+                              {player.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {trip.teams && trip.teams.length > 0 && (
+                      <div>
+                        <span className="font-medium">Times:</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {trip.teams.map((team) => (
+                            <span
+                              key={team.id}
+                              className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                            >
+                              {team.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Users className="w-4 h-4" />
+                  <span>Nenhum participante selecionado</span>
                 </div>
               )}
             </div>
@@ -265,18 +353,28 @@ export function Trips() {
                 <button
                   onClick={() => handleEdit(trip)}
                   className="text-primary-600 hover:text-primary-900"
+                  title="Editar viagem"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
+                <Link
+                  to={`/trips/${trip.id}/budget`}
+                  className="text-blue-600 hover:text-blue-900"
+                  title="Ver orçamento detalhado"
+                >
+                  <Wallet className="w-4 h-4" />
+                </Link>
                 <button
                   onClick={() => handleAddExpense(trip)}
                   className="text-green-600 hover:text-green-900"
+                  title="Adicionar gasto"
                 >
                   <PlusIcon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(trip.id)}
                   className="text-red-600 hover:text-red-900"
+                  title="Excluir viagem"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -289,7 +387,7 @@ export function Trips() {
       {/* Modal de Viagem */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
               {editingTrip ? 'Editar Viagem' : 'Nova Viagem'}
             </h2>
@@ -367,6 +465,20 @@ export function Trips() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Custo Inicial (opcional)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.initialCost}
+                    onChange={(e) => setFormData({...formData, initialCost: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                    placeholder="0.00"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Observações
                   </label>
                   <textarea
@@ -375,6 +487,58 @@ export function Trips() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                     rows="3"
                   />
+                </div>
+
+                {/* Seleção de Jogadores */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Jogadores
+                  </label>
+                  <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    {players.length > 0 ? (
+                      players.map((player) => (
+                        <label key={player.id} className="flex items-center space-x-2 py-1">
+                          <input
+                            type="checkbox"
+                            checked={formData.playerIds.includes(player.id)}
+                            onChange={() => handlePlayerToggle(player.id)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm">
+                            {player.name} ({player.position} - {player.number})
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">Nenhum jogador cadastrado</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Seleção de Times */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Times
+                  </label>
+                  <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    {teams.length > 0 ? (
+                      teams.map((team) => (
+                        <label key={team.id} className="flex items-center space-x-2 py-1">
+                          <input
+                            type="checkbox"
+                            checked={formData.teamIds.includes(team.id)}
+                            onChange={() => handleTeamToggle(team.id)}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <span className="text-sm">
+                            {team.name} ({team.playerCount} jogadores)
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">Nenhum time cadastrado</span>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -474,6 +638,8 @@ export function Trips() {
           </div>
         </div>
       )}
+
+
     </div>
   );
 }

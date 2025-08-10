@@ -64,12 +64,12 @@ public class SaleService {
         try {
             // Cria uma entrada no orçamento do tipo INCOME
             Budget budgetEntry = new Budget();
-            budgetEntry.setDescription("Venda - " + sale.getGameEvent().getName() + " - " + sale.getItems().size() + " item(s)");
+            budgetEntry.setDescription("Venda - " + sale.getGameEvent().getName() + " - " + sale.getItems().size() + " item(s) - Vendedor: " + seller.getName());
             budgetEntry.setAmount(sale.getTotalAmount());
             budgetEntry.setType(Budget.BudgetType.INCOME);
             budgetEntry.setUser(seller);
             budgetEntry.setDate(LocalDateTime.now());
-            budgetEntry.setNotes("Venda ID: " + sale.getId() + " - Jogo: " + sale.getGameEvent().getName());
+            budgetEntry.setNotes("Venda ID: " + sale.getId() + " - Jogo: " + sale.getGameEvent().getName() + " - Vendedor: " + seller.getName());
 
             // Salva a entrada no orçamento
             budgetService.createBudgetFromSale(budgetEntry);

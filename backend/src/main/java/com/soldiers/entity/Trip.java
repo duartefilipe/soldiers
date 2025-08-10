@@ -33,6 +33,9 @@ public class Trip {
     @Column(precision = 10, scale = 2)
     private BigDecimal totalCost;
     
+    @Column(precision = 10, scale = 2)
+    private BigDecimal initialCost;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -43,6 +46,25 @@ public class Trip {
     @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TripExpense> expenses = new ArrayList<>();
     
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TripBudget> budgets = new ArrayList<>();
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tb_trip_player",
+        joinColumns = @JoinColumn(name = "trip_id"),
+        inverseJoinColumns = @JoinColumn(name = "player_id")
+    )
+    private List<Player> players = new ArrayList<>();
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tb_trip_team",
+        joinColumns = @JoinColumn(name = "trip_id"),
+        inverseJoinColumns = @JoinColumn(name = "team_id")
+    )
+    private List<Team> teams = new ArrayList<>();
+    
     public enum TripStatus {
         PLANNED,    // Planejada
         IN_PROGRESS, // Em andamento
@@ -51,7 +73,10 @@ public class Trip {
     }
     
     // Constructors
-    public Trip() {}
+    public Trip() {
+        this.totalCost = BigDecimal.ZERO;
+        this.initialCost = BigDecimal.ZERO;
+    }
     
     public Trip(String destination, String description, LocalDateTime departureDate, LocalDateTime returnDate, User user) {
         this.destination = destination;
@@ -120,6 +145,14 @@ public class Trip {
         this.totalCost = totalCost;
     }
     
+    public BigDecimal getInitialCost() {
+        return initialCost;
+    }
+    
+    public void setInitialCost(BigDecimal initialCost) {
+        this.initialCost = initialCost;
+    }
+    
     public User getUser() {
         return user;
     }
@@ -142,6 +175,59 @@ public class Trip {
     
     public void setExpenses(List<TripExpense> expenses) {
         this.expenses = expenses;
+    }
+    
+    public List<TripBudget> getBudgets() {
+        return budgets;
+    }
+    
+    public void setBudgets(List<TripBudget> budgets) {
+        this.budgets = budgets;
+    }
+    
+    public List<Player> getPlayers() {
+        return players;
+    }
+    
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+    
+    public List<Team> getTeams() {
+        return teams;
+    }
+    
+    public void setTeams(List<Team> teams) {
+        this.teams = teams;
+    }
+    
+    // Métodos de negócio para jogadores e times
+    public void addPlayer(Player player) {
+        if (!players.contains(player)) {
+            players.add(player);
+        }
+    }
+    
+    public void removePlayer(Player player) {
+        players.remove(player);
+    }
+    
+    public void addTeam(Team team) {
+        if (!teams.contains(team)) {
+            teams.add(team);
+        }
+    }
+    
+    public void removeTeam(Team team) {
+        teams.remove(team);
+    }
+    
+    public int getTotalParticipants() {
+        int playerCount = players.size();
+        int teamPlayerCount = teams.stream()
+                .mapToInt(Team::getPlayerCount)
+                .sum();
+        return playerCount + teamPlayerCount;
     }
     
     public void addExpense(TripExpense expense) {

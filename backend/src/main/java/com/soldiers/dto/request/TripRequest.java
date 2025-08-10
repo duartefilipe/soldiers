@@ -3,7 +3,10 @@ package com.soldiers.dto.request;
 import com.soldiers.entity.Trip.TripStatus;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.DecimalMin;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TripRequest {
     
@@ -21,7 +24,14 @@ public class TripRequest {
     
     private TripStatus status = TripStatus.PLANNED;
     
+    @DecimalMin(value = "0.0", message = "Custo inicial deve ser maior ou igual a zero")
+    private BigDecimal initialCost;
+    
     private String notes;
+    
+    private List<Long> playerIds;
+    
+    private List<Long> teamIds;
     
     // Constructors
     public TripRequest() {}
@@ -81,5 +91,29 @@ public class TripRequest {
     
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+    
+    public BigDecimal getInitialCost() {
+        return initialCost;
+    }
+    
+    public void setInitialCost(BigDecimal initialCost) {
+        this.initialCost = initialCost;
+    }
+
+    public List<Long> getPlayerIds() {
+        return playerIds;
+    }
+
+    public void setPlayerIds(List<Long> playerIds) {
+        this.playerIds = playerIds;
+    }
+
+    public List<Long> getTeamIds() {
+        return teamIds;
+    }
+
+    public void setTeamIds(List<Long> teamIds) {
+        this.teamIds = teamIds;
     }
 }

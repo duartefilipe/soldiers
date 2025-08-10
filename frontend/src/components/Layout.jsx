@@ -12,21 +12,21 @@ import {
   Menu,
   X,
   User,
-  Clock,
   Newspaper,
   DollarSign,
-  MapPin
+  MapPin,
+  Shield
 } from 'lucide-react';
 
 const menuItems = [
   { path: '/dashboard', icon: BarChart3, label: 'Dashboard' },
   { path: '/products', icon: Package, label: 'Produtos' },
   { path: '/games', icon: Calendar, label: 'Jogos' },
-  { path: '/schedule', icon: Clock, label: 'Agenda' },
-  { path: '/sales', icon: ShoppingCart, label: 'Nova Venda' },
+  { path: '/sales', icon: ShoppingCart, label: 'Vendas' },
   { path: '/history', icon: History, label: 'Histórico' },
   { path: '/budget', icon: DollarSign, label: 'Orçamento' },
   { path: '/trips', icon: MapPin, label: 'Viagens' },
+  { path: '/team', icon: Shield, label: 'Time', adminOnly: true },
   { path: '/news', icon: Newspaper, label: 'Notícias', adminOnly: true },
   { path: '/users', icon: Users, label: 'Usuários', adminOnly: true },
 ];

@@ -25,6 +25,28 @@ public class BudgetService {
     @Autowired
     private UserRepository userRepository;
     
+    /**
+     * Verifica se um orçamento está relacionado a uma viagem
+     */
+    private boolean isTripRelated(Budget budget) {
+        if (budget == null) return false;
+        
+        String notes = budget.getNotes();
+        String description = budget.getDescription();
+        
+        return (notes != null && notes.contains("viagem ID:")) ||
+               (description != null && description.contains("Viagem para"));
+    }
+    
+    /**
+     * Verifica se um orçamento está relacionado a uma viagem pelo ID
+     */
+    private boolean isTripRelated(Long budgetId) {
+        Budget budget = budgetRepository.findById(budgetId)
+                .orElse(null);
+        return isTripRelated(budget);
+    }
+    
     @Transactional(readOnly = true)
     public List<BudgetResponse> getAllBudgets() {
         return budgetRepository.findAll().stream()
@@ -79,6 +101,11 @@ public class BudgetService {
         Budget budget = budgetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
         
+        // Bloquear edição de orçamentos relacionados a viagens
+        if (isTripRelated(budget)) {
+            throw new RuntimeException("Não é possível editar movimentações relacionadas a viagens no orçamento geral. Edite diretamente na viagem.");
+        }
+        
         budget.setDescription(request.getDescription());
         budget.setAmount(request.getAmount());
         budget.setType(request.getType());
@@ -92,7 +119,31 @@ public class BudgetService {
     public void deleteBudget(Long id) {
         Budget budget = budgetRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
+        
+        // Bloquear completamente a exclusão de gastos relacionados a viagens
+        if (isTripRelated(budget)) {
+            throw new RuntimeException("Não é possível excluir gastos relacionados a viagens do orçamento geral. Gerencie os gastos diretamente na página de viagens.");
+        }
+        
         budgetRepository.delete(budget);
+    }
+    
+    /**
+     * Método interno para forçar a exclusão de entradas relacionadas a viagens
+     * Usado apenas pelo TripService quando uma viagem é excluída
+     */
+    @Transactional
+    public void forceDeleteTripRelatedBudget(Long id) {
+        Budget budget = budgetRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orçamento não encontrado"));
+        
+        // Verifica se realmente é relacionado a viagem
+        if (isTripRelated(budget)) {
+            budgetRepository.delete(budget);
+            System.out.println("Forçada exclusão de entrada do orçamento geral ID: " + id + " relacionada a viagem");
+        } else {
+            throw new RuntimeException("Tentativa de forçar exclusão de orçamento não relacionado a viagem");
+        }
     }
     
     @Transactional
