@@ -94,7 +94,8 @@ public class ProfileService {
         // Atualizar permissões
         if (request.getPermissions() != null) {
             // Remover permissões existentes
-            permissionRepository.deleteByProfileId(id);
+            List<ProfilePermission> existingPermissions = permissionRepository.findByProfileId(id);
+            permissionRepository.deleteAll(existingPermissions);
 
             // Adicionar novas permissões
             for (ProfileRequest.PermissionRequest permRequest : request.getPermissions()) {

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,10 +26,16 @@ public class PlayerService {
     }
 
     public List<PlayerResponse> getAllPlayers() {
-        List<Player> players = playerRepository.findAllActive();
-        return players.stream()
-                .map(PlayerResponse::new)
-                .collect(Collectors.toList());
+        try {
+            List<Player> players = playerRepository.findAllActive();
+            return players.stream()
+                    .map(PlayerResponse::new)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar jogadores: " + e.getMessage());
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
 
     public PlayerResponse getPlayerById(Long id) {

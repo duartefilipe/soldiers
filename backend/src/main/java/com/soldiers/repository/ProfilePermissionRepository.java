@@ -20,6 +20,4 @@ public interface ProfilePermissionRepository extends JpaRepository<ProfilePermis
     
     @Query("SELECT pp FROM ProfilePermission pp WHERE pp.profile.id = :profileId AND pp.resource = :resource AND pp.action = :action AND pp.active = true")
     ProfilePermission findByProfileIdAndResourceAndAction(@Param("profileId") Long profileId, @Param("resource") String resource, @Param("action") String action);
-    
-    void deleteByProfileId(Long profileId);
 }

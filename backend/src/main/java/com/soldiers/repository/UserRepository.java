@@ -16,6 +16,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmailAndDeletadoEmIsNull(String email);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profile WHERE u.email = :email AND u.deletadoEm IS NULL")
+    Optional<User> findByEmailWithProfile(@Param("email") String email);
+
     @Query("SELECT u FROM User u WHERE u.deletadoEm IS NULL")
     List<User> findAllActive();
 

@@ -46,19 +46,44 @@ export function AuthProvider({ children }) {
   };
 
   const isAdmin = () => {
-    return user?.profile?.name === 'ADMIN';
+    console.log('isAdmin called, user:', user);
+    // Se o usuário tem perfil ADMIN, é admin
+    if (user?.profile?.name === 'ADMIN') {
+      console.log('Admin by profile');
+      return true;
+    }
+    // Se o email é admin@soldiers.com, também é admin (fallback)
+    if (user?.email === 'admin@soldiers.com') {
+      console.log('Admin by email');
+      return true;
+    }
+    console.log('Not admin');
+    return false;
   };
 
   const hasPermission = (resource, action) => {
+    // Admin tem todas as permissões
+    if (isAdmin()) {
+      return true;
+    }
+    // Verificar permissões específicas
     if (!user?.permissions) return false;
     return user.permissions.includes(`${resource}:${action}`);
   };
 
   const canView = (resource) => {
+    // Admin pode ver tudo
+    if (isAdmin()) {
+      return true;
+    }
     return hasPermission(resource, 'VIEW') || hasPermission(resource, 'EDIT');
   };
 
   const canEdit = (resource) => {
+    // Admin pode editar tudo
+    if (isAdmin()) {
+      return true;
+    }
     return hasPermission(resource, 'EDIT');
   };
 

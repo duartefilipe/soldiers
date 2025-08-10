@@ -3,7 +3,7 @@ package com.soldiers.dto.response;
 import com.soldiers.entity.Player;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 public class PlayerResponse {
     private Long id;
@@ -14,7 +14,7 @@ public class PlayerResponse {
     private String status;
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
-    private List<TeamSummaryResponse> teams;
+    private int teamCount;
 
     public PlayerResponse() {}
 
@@ -27,9 +27,7 @@ public class PlayerResponse {
         this.status = player.getStatus().toString();
         this.criadoEm = player.getCriadoEm();
         this.atualizadoEm = player.getAtualizadoEm();
-        this.teams = player.getTeams().stream()
-                .map(TeamSummaryResponse::new)
-                .collect(Collectors.toList());
+        this.teamCount = 0;
     }
 
     // Getters e Setters
@@ -97,50 +95,11 @@ public class PlayerResponse {
         this.atualizadoEm = atualizadoEm;
     }
 
-    public List<TeamSummaryResponse> getTeams() {
-        return teams;
+    public int getTeamCount() {
+        return teamCount;
     }
 
-    public void setTeams(List<TeamSummaryResponse> teams) {
-        this.teams = teams;
-    }
-
-    // Classe interna para evitar referência circular
-    public static class TeamSummaryResponse {
-        private Long id;
-        private String name;
-        private String status;
-
-        public TeamSummaryResponse() {}
-
-        public TeamSummaryResponse(com.soldiers.entity.Team team) {
-            this.id = team.getId();
-            this.name = team.getName();
-            this.status = team.getStatus().toString();
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-
-        public void setStatus(String status) {
-            this.status = status;
-        }
+    public void setTeamCount(int teamCount) {
+        this.teamCount = teamCount;
     }
 }

@@ -27,7 +27,7 @@ public class Profile {
     @Column(nullable = false)
     private boolean active = true;
 
-    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProfilePermission> permissions = new HashSet<>();
 
     @OneToMany(mappedBy = "profile")

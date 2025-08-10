@@ -28,6 +28,7 @@ const menuItems = [
   { path: '/history', icon: History, label: 'Histórico', resource: 'SALES' },
   { path: '/budget', icon: DollarSign, label: 'Orçamento', resource: 'BUDGET' },
   { path: '/trips', icon: MapPin, label: 'Viagens', resource: 'TRIPS' },
+  { path: '/team', icon: Users, label: 'Time', resource: 'TEAM', requireAdmin: true },
   { path: '/news', icon: Newspaper, label: 'Notícias', resource: 'NEWS' },
   { path: '/users', icon: Users, label: 'Usuários', resource: 'USERS', requireAdmin: true },
   { path: '/profiles', icon: Settings, label: 'Perfis', resource: 'USERS', requireAdmin: true },

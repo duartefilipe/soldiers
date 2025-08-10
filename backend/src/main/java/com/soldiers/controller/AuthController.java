@@ -13,13 +13,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {"http://localhost:8084", "http://127.0.0.1:8084", "http://172.18.0.3:8084"})
 public class AuthController {
 
     private final UserService userService;
 
     public AuthController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Test endpoint working!");
     }
 
     @PostMapping("/login")
@@ -105,6 +110,36 @@ public class AuthController {
             return ResponseEntity.ok("Dados iniciais inseridos com sucesso!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao inicializar dados: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reset-data")
+    public ResponseEntity<String> resetData() {
+        try {
+            userService.resetData();
+            return ResponseEntity.ok("Dados resetados com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao resetar dados: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/create-test-users")
+    public ResponseEntity<String> createTestUsers() {
+        try {
+            userService.createTestUsers();
+            return ResponseEntity.ok("Usuários de teste criados com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao criar usuários de teste: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/generate-password/{password}")
+    public ResponseEntity<String> generatePassword(@PathVariable String password) {
+        try {
+            String encodedPassword = userService.encodePassword(password);
+            return ResponseEntity.ok(encodedPassword);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao gerar senha: " + e.getMessage());
         }
     }
 } 
