@@ -289,7 +289,7 @@ public class SaleResponse {
         private Long id;
         private String name;
         private String email;
-        private String role;
+        private String profileName;
 
         public UserResponse() {}
 
@@ -297,7 +297,7 @@ public class SaleResponse {
             this.id = user.getId();
             this.name = user.getName();
             this.email = user.getEmail();
-            this.role = user.getRole().toString();
+            this.profileName = user.getProfile() != null ? user.getProfile().getName() : "N/A";
         }
 
         // Getters e Setters
@@ -325,12 +325,21 @@ public class SaleResponse {
             this.email = email;
         }
 
+        public String getProfileName() {
+            return profileName;
+        }
+
+        public void setProfileName(String profileName) {
+            this.profileName = profileName;
+        }
+
+        // Método para compatibilidade
         public String getRole() {
-            return role;
+            return profileName;
         }
 
         public void setRole(String role) {
-            this.role = role;
+            this.profileName = role;
         }
     }
 } 

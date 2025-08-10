@@ -46,7 +46,28 @@ export function AuthProvider({ children }) {
   };
 
   const isAdmin = () => {
-    return user?.role === 'ADMIN';
+    return user?.profile?.name === 'ADMIN';
+  };
+
+  const hasPermission = (resource, action) => {
+    if (!user?.permissions) return false;
+    return user.permissions.includes(`${resource}:${action}`);
+  };
+
+  const canView = (resource) => {
+    return hasPermission(resource, 'VIEW') || hasPermission(resource, 'EDIT');
+  };
+
+  const canEdit = (resource) => {
+    return hasPermission(resource, 'EDIT');
+  };
+
+  const getProfileName = () => {
+    return user?.profile?.name || 'N/A';
+  };
+
+  const getProfileDescription = () => {
+    return user?.profile?.description || 'N/A';
   };
 
   return (
@@ -55,6 +76,11 @@ export function AuthProvider({ children }) {
       signIn, 
       signOut, 
       isAdmin, 
+      hasPermission,
+      canView,
+      canEdit,
+      getProfileName,
+      getProfileDescription,
       loading,
       isAuthenticated: !!user 
     }}>

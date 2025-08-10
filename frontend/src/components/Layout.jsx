@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PermissionGate from './PermissionGate';
 import { 
   BarChart3, 
   Package, 
@@ -15,25 +16,26 @@ import {
   Newspaper,
   DollarSign,
   MapPin,
-  Shield
+  Shield,
+  Settings
 } from 'lucide-react';
 
 const menuItems = [
-  { path: '/dashboard', icon: BarChart3, label: 'Dashboard' },
-  { path: '/products', icon: Package, label: 'Produtos' },
-  { path: '/games', icon: Calendar, label: 'Jogos' },
-  { path: '/sales', icon: ShoppingCart, label: 'Vendas' },
-  { path: '/history', icon: History, label: 'Histórico' },
-  { path: '/budget', icon: DollarSign, label: 'Orçamento' },
-  { path: '/trips', icon: MapPin, label: 'Viagens' },
-  { path: '/team', icon: Shield, label: 'Time', adminOnly: true },
-  { path: '/news', icon: Newspaper, label: 'Notícias', adminOnly: true },
-  { path: '/users', icon: Users, label: 'Usuários', adminOnly: true },
+  { path: '/dashboard', icon: BarChart3, label: 'Dashboard', resource: 'DASHBOARD' },
+  { path: '/products', icon: Package, label: 'Produtos', resource: 'PRODUCTS' },
+  { path: '/games', icon: Calendar, label: 'Jogos', resource: 'GAMES' },
+  { path: '/sales', icon: ShoppingCart, label: 'Vendas', resource: 'SALES' },
+  { path: '/history', icon: History, label: 'Histórico', resource: 'SALES' },
+  { path: '/budget', icon: DollarSign, label: 'Orçamento', resource: 'BUDGET' },
+  { path: '/trips', icon: MapPin, label: 'Viagens', resource: 'TRIPS' },
+  { path: '/news', icon: Newspaper, label: 'Notícias', resource: 'NEWS' },
+  { path: '/users', icon: Users, label: 'Usuários', resource: 'USERS', requireAdmin: true },
+  { path: '/profiles', icon: Settings, label: 'Perfis', resource: 'USERS', requireAdmin: true },
 ];
 
 export function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, canView, getProfileName } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -42,9 +44,19 @@ export function Layout({ children }) {
     navigate('/login');
   };
 
-  const filteredMenuItems = menuItems.filter(item => 
-    !item.adminOnly || isAdmin()
-  );
+  const filteredMenuItems = menuItems.filter(item => {
+    // Se requer admin e não é admin, não mostra
+    if (item.requireAdmin && !isAdmin()) {
+      return false;
+    }
+    
+    // Se tem resource, verifica se pode visualizar
+    if (item.resource && !canView(item.resource)) {
+      return false;
+    }
+    
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -100,7 +112,7 @@ export function Layout({ children }) {
             </div>
             <div className="ml-3 flex-1">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.role}</p>
+              <p className="text-xs text-gray-500">{getProfileName()}</p>
             </div>
             <button
               onClick={handleSignOut}
@@ -129,7 +141,7 @@ export function Layout({ children }) {
             
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">
-                Bem-vindo, {user?.name}
+                Bem-vindo, {user?.name} ({getProfileName()})
               </span>
             </div>
           </div>

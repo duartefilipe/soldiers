@@ -31,9 +31,12 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "profile_id", nullable = false)
+    private Profile profile;
+
     @Column(nullable = false)
-    private UserRole role = UserRole.NORMAL;
+    private boolean active = true;
 
     @Column(name = "criado_em")
     @CreatedDate
@@ -49,11 +52,11 @@ public class User {
     // Construtores
     public User() {}
 
-    public User(String name, String email, String password, UserRole role) {
+    public User(String name, String email, String password, Profile profile) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.profile = profile;
     }
 
     // Getters e Setters
@@ -89,12 +92,20 @@ public class User {
         this.password = password;
     }
 
-    public UserRole getRole() {
-        return role;
+    public Profile getProfile() {
+        return profile;
     }
 
-    public void setRole(UserRole role) {
-        this.role = role;
+    public void setProfile(Profile profile) {
+        this.profile = profile;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public LocalDateTime getCriadoEm() {
@@ -121,6 +132,24 @@ public class User {
         this.deletadoEm = deletadoEm;
     }
 
+    // Métodos auxiliares para compatibilidade
+    public boolean isAdmin() {
+        return profile != null && "ADMIN".equals(profile.getName());
+    }
+
+    public boolean hasPermission(String resource, String action) {
+        return profile != null && profile.hasPermission(resource, action);
+    }
+
+    public boolean canView(String resource) {
+        return profile != null && profile.canView(resource);
+    }
+
+    public boolean canEdit(String resource) {
+        return profile != null && profile.canEdit(resource);
+    }
+
+    // Enum mantido para compatibilidade com código existente
     public enum UserRole {
         ADMIN, NORMAL
     }

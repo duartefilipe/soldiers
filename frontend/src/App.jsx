@@ -16,6 +16,7 @@ import { Budget } from './pages/Budget';
 import { Trips } from './pages/Trips';
 import { TripBudget } from './pages/TripBudget';
 import { Team } from './pages/Team';
+import Profiles from './pages/Profiles';
 
 function App() {
   return (
@@ -122,6 +123,16 @@ function App() {
                 <PrivateRoute requireAdmin={true}>
                   <Layout>
                     <Users />
+                  </Layout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/profiles"
+              element={
+                <PrivateRoute requireAdmin={true}>
+                  <Layout>
+                    <Profiles />
                   </Layout>
                 </PrivateRoute>
               }

@@ -24,14 +24,22 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        LoginResponse response = userService.login(request);
-        return ResponseEntity.ok(response);
+        try {
+            LoginResponse response = userService.login(request);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @PostMapping("/register")
     public ResponseEntity<User> register(@Valid @RequestBody UserRequest request) {
-        User user = userService.createUser(request);
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.createUser(request);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/users")
@@ -42,27 +50,61 @@ public class AuthController {
 
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.getUserById(id);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PutMapping("/users/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
-        User user = userService.updateUser(id, request);
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.updateUser(id, request);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/users/{id}/activate")
+    public ResponseEntity<String> activateUser(@PathVariable Long id) {
+        try {
+            userService.activateUser(id);
+            return ResponseEntity.ok("Usuário ativado com sucesso");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Erro ao ativar usuário: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/users/{id}/deactivate")
+    public ResponseEntity<String> deactivateUser(@PathVariable Long id) {
+        try {
+            userService.deactivateUser(id);
+            return ResponseEntity.ok("Usuário desativado com sucesso");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Erro ao desativar usuário: " + e.getMessage());
+        }
     }
 
     @PostMapping("/init-data")
     public ResponseEntity<String> initData() {
-        userService.initData();
-        return ResponseEntity.ok("Dados iniciais inseridos com sucesso!");
+        try {
+            userService.initData();
+            return ResponseEntity.ok("Dados iniciais inseridos com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao inicializar dados: " + e.getMessage());
+        }
     }
-
-
 } 

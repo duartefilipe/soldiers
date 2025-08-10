@@ -1,9 +1,7 @@
 package com.soldiers.dto.request;
 
-import com.soldiers.entity.User;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 public class UserRequest {
 
@@ -17,17 +15,17 @@ public class UserRequest {
     @NotBlank
     private String password;
 
-    @NotNull
-    private User.UserRole role;
+    @NotBlank
+    private String profileName;
 
     // Construtores
     public UserRequest() {}
 
-    public UserRequest(String name, String email, String password, User.UserRole role) {
+    public UserRequest(String name, String email, String password, String profileName) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.profileName = profileName;
     }
 
     // Getters e Setters
@@ -55,11 +53,11 @@ public class UserRequest {
         this.password = password;
     }
 
-    public User.UserRole getRole() {
-        return role;
+    public String getProfileName() {
+        return profileName;
     }
 
-    public void setRole(User.UserRole role) {
-        this.role = role;
+    public void setProfileName(String profileName) {
+        this.profileName = profileName;
     }
 } 

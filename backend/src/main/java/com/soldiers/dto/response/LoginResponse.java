@@ -2,6 +2,9 @@ package com.soldiers.dto.response;
 
 import com.soldiers.entity.User;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class LoginResponse {
 
     private String status;
@@ -36,7 +39,9 @@ public class LoginResponse {
         private Long id;
         private String name;
         private String email;
-        private User.UserRole role;
+        private ProfileResponse profile;
+        private boolean active;
+        private List<String> permissions;
 
         public UserResponse() {}
 
@@ -44,7 +49,17 @@ public class LoginResponse {
             this.id = user.getId();
             this.name = user.getName();
             this.email = user.getEmail();
-            this.role = user.getRole();
+            this.active = user.isActive();
+            
+            if (user.getProfile() != null) {
+                this.profile = new ProfileResponse(user.getProfile());
+                
+                // Extrair permissões como lista de strings
+                this.permissions = user.getProfile().getPermissions().stream()
+                        .filter(permission -> permission.isActive())
+                        .map(permission -> permission.getResource() + ":" + permission.getAction())
+                        .collect(Collectors.toList());
+            }
         }
 
         // Getters e Setters
@@ -72,12 +87,45 @@ public class LoginResponse {
             this.email = email;
         }
 
-        public User.UserRole getRole() {
-            return role;
+        public ProfileResponse getProfile() {
+            return profile;
         }
 
-        public void setRole(User.UserRole role) {
-            this.role = role;
+        public void setProfile(ProfileResponse profile) {
+            this.profile = profile;
+        }
+
+        public boolean isActive() {
+            return active;
+        }
+
+        public void setActive(boolean active) {
+            this.active = active;
+        }
+
+        public List<String> getPermissions() {
+            return permissions;
+        }
+
+        public void setPermissions(List<String> permissions) {
+            this.permissions = permissions;
+        }
+
+        // Métodos auxiliares para compatibilidade
+        public boolean isAdmin() {
+            return profile != null && "ADMIN".equals(profile.getName());
+        }
+
+        public boolean hasPermission(String resource, String action) {
+            return permissions != null && permissions.contains(resource + ":" + action);
+        }
+
+        public boolean canView(String resource) {
+            return hasPermission(resource, "VIEW") || hasPermission(resource, "EDIT");
+        }
+
+        public boolean canEdit(String resource) {
+            return hasPermission(resource, "EDIT");
         }
     }
 } 
