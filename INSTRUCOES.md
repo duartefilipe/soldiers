@@ -27,7 +27,7 @@
    ```yaml
    spring:
      datasource:
-       url: jdbc:postgresql://localhost:5432/vendas_futebol
+       url: jdbc:postgresql://177.203.121.234:15432/vendas_futebol
        username: postgres
        password: sua_senha_aqui
    ```
@@ -42,7 +42,7 @@
    - Execute a classe `VendasFutebolApplication`
 
 4. **Verifique se a API está rodando:**
-   - Acesse: http://localhost:8080
+   - Acesse: http://177.203.121.234:8083
    - Você deve ver uma página de erro (normal, pois não há endpoint raiz)
 
 ## ⚛️ Configuração do Frontend
@@ -63,8 +63,8 @@
    ```
 
 4. **Acesse a aplicação:**
-   - Frontend: http://localhost:5173
-   - Backend API: http://localhost:8080
+   - Frontend: http://177.203.121.234:8084
+   - Backend API: http://177.203.121.234:8083
 
 ## 🔐 Credenciais de Teste
 

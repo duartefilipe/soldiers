@@ -69,8 +69,8 @@ docker-compose up --build -d
 ```
 
 3. **Acesse a aplicação**
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8080
+- Frontend: http://177.203.121.234:8084
+- Backend: http://177.203.121.234:8083
 
 ### Configuração do Banco de Dados
 
