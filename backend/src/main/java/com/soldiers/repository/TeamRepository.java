@@ -18,4 +18,7 @@ public interface TeamRepository extends JpaRepository<Team, Long> {
 
     @Query("SELECT t FROM Team t WHERE t.name LIKE %:name% AND t.deletadoEm IS NULL")
     List<Team> findByNameContaining(String name);
+
+    @Query("SELECT t FROM Team t LEFT JOIN FETCH t.players WHERE t.id = :id")
+    java.util.Optional<Team> findByIdWithPlayers(Long id);
 }

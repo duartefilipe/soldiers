@@ -21,4 +21,7 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     @Query("SELECT p FROM Player p WHERE p.position = :position AND p.deletadoEm IS NULL")
     List<Player> findByPosition(String position);
+
+    @Query("SELECT p FROM Player p LEFT JOIN FETCH p.teams WHERE p.id = :id")
+    java.util.Optional<Player> findByIdWithTeams(Long id);
 }

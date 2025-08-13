@@ -32,7 +32,7 @@ public class ProfileController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProfileResponse> getProfileById(@PathVariable Long id) {
-        return profileService.getProfileById(id)
+        return profileService.getProfileWithPermissions(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -66,6 +66,8 @@ public class ProfileController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+
 
     @PostMapping("/initialize")
     public ResponseEntity<String> initializeDefaultProfiles() {

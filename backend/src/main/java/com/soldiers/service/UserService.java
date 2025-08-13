@@ -12,27 +12,38 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileService profileService;
 
-    @Autowired(required = false)
-    private ProfileService profileService;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, ProfileService profileService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.profileService = profileService;
     }
 
     public LoginResponse login(LoginRequest request) {
         try {
             System.out.println("Tentando fazer login para o email: " + request.getEmail());
             
-            User user = userRepository.findByEmailAndDeletadoEmIsNull(request.getEmail())
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            // Primeiro tentar buscar com perfil
+            User user = userRepository.findByEmailWithProfile(request.getEmail())
+                    .orElseGet(() -> {
+                        // Se não encontrar com perfil, tentar sem perfil
+                        return userRepository.findByEmailAndDeletadoEmIsNull(request.getEmail())
+                                .orElse(null);
+                    });
+            
+            if (user == null) {
+                throw new RuntimeException("Usuário não encontrado");
+            }
 
             System.out.println("Usuário encontrado: " + user.getName());
 
@@ -59,33 +70,49 @@ public class UserService {
     }
 
     public User createUser(UserRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // Verificar se o email já existe para usuários ativos
+        Optional<User> existingUser = userRepository.findByEmailAndDeletadoEmIsNull(request.getEmail());
+        if (existingUser.isPresent()) {
             throw new RuntimeException("Email já cadastrado");
-        }
-
-        // Buscar o perfil
-        Profile profile = null;
-        if (profileService != null && request.getProfileName() != null) {
-            profile = profileService.getProfileByName(request.getProfileName())
-                    .orElse(null); // Não lançar exceção, apenas retornar null
         }
 
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setProfile(profile);
         user.setActive(true);
 
-        return userRepository.save(user);
+        // Adicionar perfis se fornecidos
+        if (request.getProfileName() != null && profileService != null) {
+            Profile profile = profileService.getProfileByName(request.getProfileName())
+                    .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+            user.addProfile(profile);
+        }
+        
+        // Adicionar múltiplos perfis se fornecidos
+        if (request.getProfileNames() != null && !request.getProfileNames().isEmpty() && profileService != null) {
+            for (String profileName : request.getProfileNames()) {
+                Profile profile = profileService.getProfileByName(profileName)
+                        .orElseThrow(() -> new RuntimeException("Perfil não encontrado: " + profileName));
+                user.addProfile(profile);
+            }
+        }
+
+        user = userRepository.save(user);
+        
+        // Retornar o usuário com perfil carregado
+        return userRepository.findByIdWithProfile(user.getId())
+                .orElse(user);
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAllActive();
+        // Usar uma query que carrega todos os usuários com seus perfis de uma vez
+        // para evitar o problema N+1 e duplicação
+        return userRepository.findAllActiveWithProfiles();
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id)
+        return userRepository.findByIdWithProfile(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
@@ -103,14 +130,43 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        // Atualizar perfil se fornecido
+        // Atualizar perfis se fornecidos
+        System.out.println("ProfileService é null? " + (profileService == null));
+        System.out.println("ProfileName fornecido: " + request.getProfileName());
+        System.out.println("ProfileNames fornecido: " + request.getProfileNames());
+        
+        // Limpar perfis existentes
+        user.getProfiles().clear();
+        
+        // Adicionar perfis por profileName (compatibilidade)
         if (request.getProfileName() != null && profileService != null) {
+            System.out.println("Buscando perfil: " + request.getProfileName());
             Profile profile = profileService.getProfileByName(request.getProfileName())
                     .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
-            user.setProfile(profile);
+            System.out.println("Perfil encontrado: " + profile.getName() + " (ID: " + profile.getId() + ")");
+            user.addProfile(profile);
+        }
+        
+        // Adicionar perfis por profileNames (múltiplos perfis)
+        if (request.getProfileNames() != null && !request.getProfileNames().isEmpty() && profileService != null) {
+            for (String profileName : request.getProfileNames()) {
+                System.out.println("Buscando perfil: " + profileName);
+                Profile profile = profileService.getProfileByName(profileName)
+                        .orElseThrow(() -> new RuntimeException("Perfil não encontrado: " + profileName));
+                System.out.println("Perfil encontrado: " + profile.getName() + " (ID: " + profile.getId() + ")");
+                user.addProfile(profile);
+            }
+        }
+        
+        if (user.getProfiles().isEmpty()) {
+            System.out.println("Nenhum perfil foi atribuído ao usuário");
         }
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        
+        // Retornar o usuário com perfil carregado
+        return userRepository.findByIdWithProfile(user.getId())
+                .orElse(user);
     }
 
     public void deleteUser(Long id) {

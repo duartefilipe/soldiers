@@ -3,6 +3,7 @@ package com.soldiers.controller;
 import com.soldiers.dto.request.LoginRequest;
 import com.soldiers.dto.request.UserRequest;
 import com.soldiers.dto.response.LoginResponse;
+import com.soldiers.dto.response.UserResponse;
 import com.soldiers.entity.User;
 import com.soldiers.service.UserService;
 import javax.validation.Valid;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,7 +26,7 @@ public class AuthController {
 
     @GetMapping("/test")
     public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Test endpoint working!");
+        return ResponseEntity.ok("Test endpoint working");
     }
 
     @PostMapping("/login")
@@ -38,36 +40,44 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRequest request) {
         try {
             User user = userService.createUser(request);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserResponse(user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        try {
+            List<User> users = userService.getAllUsers();
+            List<UserResponse> userResponses = users.stream()
+                    .map(UserResponse::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(userResponses);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         try {
             User user = userService.getUserById(id);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserResponse(user));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PutMapping("/users/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
         try {
             User user = userService.updateUser(id, request);
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(new UserResponse(user));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
         }

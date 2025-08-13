@@ -30,7 +30,7 @@ public class Profile {
     @OneToMany(mappedBy = "profile", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProfilePermission> permissions = new HashSet<>();
 
-    @OneToMany(mappedBy = "profile")
+    @ManyToMany(mappedBy = "profiles")
     private Set<User> users = new HashSet<>();
 
     @Column(name = "criado_em")

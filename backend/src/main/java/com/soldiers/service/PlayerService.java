@@ -39,7 +39,7 @@ public class PlayerService {
     }
 
     public PlayerResponse getPlayerById(Long id) {
-        Player player = playerRepository.findById(id)
+        Player player = playerRepository.findByIdWithTeams(id)
                 .orElseThrow(() -> new RuntimeException("Jogador não encontrado"));
         return new PlayerResponse(player);
     }
@@ -58,19 +58,28 @@ public class PlayerService {
         // Adicionar jogador aos times se especificados
         if (request.getTeamIds() != null && !request.getTeamIds().isEmpty()) {
             for (Long teamId : request.getTeamIds()) {
-                Team team = teamRepository.findById(teamId)
+                Team team = teamRepository.findByIdWithPlayers(teamId)
                         .orElseThrow(() -> new RuntimeException("Time não encontrado: " + teamId));
                 team.addPlayer(savedPlayer);
             }
-            teamRepository.saveAll(savedPlayer.getTeams());
+            // Salvar os times para garantir que o relacionamento seja persistido
+            for (Long teamId : request.getTeamIds()) {
+                Team team = teamRepository.findByIdWithPlayers(teamId)
+                        .orElseThrow(() -> new RuntimeException("Time não encontrado: " + teamId));
+                teamRepository.save(team);
+            }
         }
 
-        return new PlayerResponse(savedPlayer);
+        // Recarregar o jogador com os times para garantir que o relacionamento foi salvo
+        Player loadedPlayer = playerRepository.findByIdWithTeams(savedPlayer.getId())
+                .orElseThrow(() -> new RuntimeException("Erro ao recarregar jogador"));
+
+        return new PlayerResponse(loadedPlayer);
     }
 
     @Transactional
     public PlayerResponse updatePlayer(Long id, PlayerRequest request) {
-        Player player = playerRepository.findById(id)
+        Player player = playerRepository.findByIdWithTeams(id)
                 .orElseThrow(() -> new RuntimeException("Jogador não encontrado"));
 
         player.setName(request.getName());
@@ -79,18 +88,34 @@ public class PlayerService {
         player.setDescription(request.getDescription());
         player.setStatus(Player.PlayerStatus.valueOf(request.getStatus().toUpperCase()));
 
-        // Limpar times existentes e adicionar os novos
+        // Remover jogador de todos os times existentes
+        for (Team team : new ArrayList<>(player.getTeams())) {
+            team.removePlayer(player);
+        }
         player.getTeams().clear();
+
+        // Adicionar jogador aos novos times
         if (request.getTeamIds() != null && !request.getTeamIds().isEmpty()) {
             for (Long teamId : request.getTeamIds()) {
-                Team team = teamRepository.findById(teamId)
+                Team team = teamRepository.findByIdWithPlayers(teamId)
                         .orElseThrow(() -> new RuntimeException("Time não encontrado: " + teamId));
                 team.addPlayer(player);
+            }
+            // Salvar os times para garantir que o relacionamento seja persistido
+            for (Long teamId : request.getTeamIds()) {
+                Team team = teamRepository.findByIdWithPlayers(teamId)
+                        .orElseThrow(() -> new RuntimeException("Time não encontrado: " + teamId));
+                teamRepository.save(team);
             }
         }
 
         Player savedPlayer = playerRepository.save(player);
-        return new PlayerResponse(savedPlayer);
+        
+        // Recarregar o jogador com os times para garantir que o relacionamento foi salvo
+        Player loadedPlayer = playerRepository.findByIdWithTeams(savedPlayer.getId())
+                .orElseThrow(() -> new RuntimeException("Erro ao recarregar jogador"));
+
+        return new PlayerResponse(loadedPlayer);
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import com.soldiers.entity.Team;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class TeamResponse {
     private Long id;
@@ -13,6 +14,7 @@ public class TeamResponse {
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
     private int playerCount;
+    private List<PlayerResponse> players;
 
     public TeamResponse() {}
 
@@ -23,7 +25,8 @@ public class TeamResponse {
         this.status = team.getStatus().toString();
         this.criadoEm = team.getCriadoEm();
         this.atualizadoEm = team.getAtualizadoEm();
-        this.playerCount = 0;
+        this.playerCount = team.getPlayerCount();
+        this.players = null; // Temporariamente removido para evitar referência circular
     }
 
     // Getters e Setters
@@ -81,5 +84,13 @@ public class TeamResponse {
 
     public void setPlayerCount(int playerCount) {
         this.playerCount = playerCount;
+    }
+
+    public List<PlayerResponse> getPlayers() {
+        return players;
+    }
+
+    public void setPlayers(List<PlayerResponse> players) {
+        this.players = players;
     }
 }

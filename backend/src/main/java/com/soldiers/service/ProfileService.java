@@ -24,7 +24,7 @@ public class ProfileService {
     private ProfilePermissionRepository permissionRepository;
 
     public List<ProfileResponse> getAllProfiles() {
-        return profileRepository.findByActiveTrue()
+        return profileRepository.findAllActiveWithPermissions()
                 .stream()
                 .map(ProfileResponse::new)
                 .collect(Collectors.toList());
@@ -39,6 +39,11 @@ public class ProfileService {
 
     public Optional<ProfileResponse> getProfileById(Long id) {
         return profileRepository.findById(id)
+                .map(ProfileResponse::new);
+    }
+
+    public Optional<ProfileResponse> getProfileWithPermissions(Long id) {
+        return profileRepository.findByIdWithPermissions(id)
                 .map(ProfileResponse::new);
     }
 
@@ -71,7 +76,14 @@ public class ProfileService {
             }
         }
 
-        return new ProfileResponse(profileRepository.findById(profile.getId()).orElse(profile));
+        // Forçar flush da transação
+        profileRepository.flush();
+        permissionRepository.flush();
+
+        // Retornar o perfil com as permissões carregadas
+        return profileRepository.findByIdWithPermissions(profile.getId())
+                .map(ProfileResponse::new)
+                .orElse(new ProfileResponse(profile));
     }
 
     @Transactional
@@ -108,7 +120,14 @@ public class ProfileService {
             }
         }
 
-        return new ProfileResponse(profileRepository.findById(profile.getId()).orElse(profile));
+        // Forçar flush da transação
+        profileRepository.flush();
+        permissionRepository.flush();
+
+        // Retornar o perfil com as permissões carregadas
+        return profileRepository.findByIdWithPermissions(profile.getId())
+                .map(ProfileResponse::new)
+                .orElse(new ProfileResponse(profile));
     }
 
     @Transactional

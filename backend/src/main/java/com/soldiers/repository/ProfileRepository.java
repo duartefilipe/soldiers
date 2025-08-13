@@ -23,4 +23,10 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     
     @Query("SELECT p FROM Profile p JOIN p.permissions pp WHERE pp.resource = :resource AND pp.action = :action AND pp.active = true")
     List<Profile> findByResourceAndAction(@Param("resource") String resource, @Param("action") String action);
+    
+    @Query("SELECT p FROM Profile p LEFT JOIN FETCH p.permissions WHERE p.id = :id")
+    Optional<Profile> findByIdWithPermissions(@Param("id") Long id);
+    
+    @Query("SELECT DISTINCT p FROM Profile p LEFT JOIN FETCH p.permissions WHERE p.active = true")
+    List<Profile> findAllActiveWithPermissions();
 }

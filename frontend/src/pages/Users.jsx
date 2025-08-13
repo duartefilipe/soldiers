@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { api } from '../services/api';
-import { Plus, Edit, Trash2, Search, User, Shield } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useState, useEffect } from 'react';
+import { Plus, Search, Edit, Trash2, User } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import api from '../services/api';
 
-export function Users() {
+export const Users = () => {
   const [users, setUsers] = useState([]);
+  const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -13,11 +14,14 @@ export function Users() {
     name: '',
     email: '',
     password: '',
-    role: 'NORMAL'
+    role: 'NORMAL',
+    profileName: '', // Para compatibilidade
+    profileNames: [] // Para múltiplos perfis
   });
 
   useEffect(() => {
     loadUsers();
+    loadProfiles();
   }, []);
 
   const loadUsers = async () => {
@@ -31,14 +35,37 @@ export function Users() {
     }
   };
 
+  const loadProfiles = async () => {
+    try {
+      const response = await api.get('/profiles');
+      setProfiles(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar perfis:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.profileNames.length === 0) {
+      toast.error('Selecione pelo menos um perfil');
+      return;
+    }
+
     try {
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        profileNames: formData.profileNames.length > 0 ? formData.profileNames : 
+                     (formData.role === 'ADMIN' ? ['ADMIN'] : [formData.profileName])
+      };
+
       if (editingUser) {
-        await api.put(`/auth/users/${editingUser.id}`, formData);
+        await api.put(`/auth/users/${editingUser.id}`, userData);
         toast.success('Usuário atualizado com sucesso!');
       } else {
-        await api.post('/auth/register', formData);
+        await api.post('/auth/register', userData);
         toast.success('Usuário criado com sucesso!');
       }
       setShowModal(false);
@@ -56,7 +83,9 @@ export function Users() {
       name: user.name,
       email: user.email,
       password: '',
-      role: user.role
+      role: user.profile?.name === 'ADMIN' ? 'ADMIN' : 'NORMAL',
+      profileName: user.profile?.name || '',
+      profileNames: user.profiles ? user.profiles.map(p => p.name) : []
     });
     setShowModal(true);
   };
@@ -78,7 +107,9 @@ export function Users() {
       name: '',
       email: '',
       password: '',
-      role: 'NORMAL'
+      role: 'NORMAL',
+      profileName: '',
+      profileNames: []
     });
   };
 
@@ -93,15 +124,15 @@ export function Users() {
     }
   };
 
-  const getRoleText = (role) => {
-    switch (role) {
-      case 'ADMIN':
-        return 'Administrador';
-      case 'NORMAL':
-        return 'Usuário';
-      default:
-        return role;
+  const getRoleText = (user) => {
+    if (user.profiles && user.profiles.length > 0) {
+      const profileNames = user.profiles.map(p => p.name).join(', ');
+      return `Usuário (${profileNames})`;
     }
+    if (user.profile?.name) {
+      return `Usuário (${user.profile.name})`;
+    }
+    return 'Usuário (Sem perfil)';
   };
 
   const filteredUsers = users.filter(user =>
@@ -186,8 +217,8 @@ export function Users() {
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
-                      {getRoleText(user.role)}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.profile?.name === 'ADMIN' ? 'ADMIN' : 'NORMAL')}`}>
+                      {getRoleText(user)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -269,18 +300,43 @@ export function Users() {
                     className="input-field"
                   />
                 </div>
+
+                
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Função</label>
-                  <select
-                    value={formData.role}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="input-field"
-                  >
-                    <option value="NORMAL">Usuário</option>
-                    <option value="ADMIN">Administrador</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-700">Perfis</label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                    {profiles.map((profile) => (
+                      <label key={profile.id} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.profileNames.includes(profile.name)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                profileNames: [...formData.profileNames, profile.name]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                profileNames: formData.profileNames.filter(name => name !== profile.name)
+                              });
+                            }
+                          }}
+                          className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          {profile.name} - {profile.description}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.profileNames.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">Selecione pelo menos um perfil</p>
+                  )}
                 </div>
-                <div className="flex justify-end space-x-3">
+
+                <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -303,4 +359,6 @@ export function Users() {
       )}
     </div>
   );
-} 
+};
+
+export default Users; 

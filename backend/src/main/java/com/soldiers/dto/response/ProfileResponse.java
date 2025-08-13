@@ -28,10 +28,13 @@ public class ProfileResponse {
         this.criadoEm = profile.getCriadoEm();
         this.atualizadoEm = profile.getAtualizadoEm();
         
-        if (profile.getPermissions() != null) {
+        // Carregar permissões se disponíveis
+        if (profile.getPermissions() != null && !profile.getPermissions().isEmpty()) {
             this.permissions = profile.getPermissions().stream()
                     .map(PermissionResponse::new)
                     .collect(Collectors.toList());
+        } else {
+            this.permissions = null;
         }
     }
 
@@ -74,6 +77,14 @@ public class ProfileResponse {
 
     public void setPermissions(List<PermissionResponse> permissions) {
         this.permissions = permissions;
+    }
+
+    public void setPermissionsFromEntity(List<ProfilePermission> permissions) {
+        if (permissions != null) {
+            this.permissions = permissions.stream()
+                    .map(PermissionResponse::new)
+                    .collect(Collectors.toList());
+        }
     }
 
     public LocalDateTime getCriadoEm() {

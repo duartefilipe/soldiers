@@ -64,19 +64,36 @@ const Profiles = () => {
     }
   };
 
-  const handleEdit = (profile) => {
-    setEditingProfile(profile);
-    setFormData({
-      name: profile.name,
-      description: profile.description,
-      active: profile.active,
-      permissions: profile.permissions?.map(p => ({
-        resource: p.resource,
-        action: p.action,
-        active: p.active
-      })) || []
-    });
-    setShowForm(true);
+  const handleEdit = async (profile) => {
+    try {
+      // Carregar permissões do perfil
+      const response = await api.get(`/profiles/${profile.id}`);
+      const profileWithPermissions = response.data;
+      
+      setEditingProfile(profileWithPermissions);
+      setFormData({
+        name: profileWithPermissions.name,
+        description: profileWithPermissions.description,
+        active: profileWithPermissions.active,
+        permissions: profileWithPermissions.permissions?.map(p => ({
+          resource: p.resource,
+          action: p.action,
+          active: p.active
+        })) || []
+      });
+      setShowForm(true);
+    } catch (error) {
+      console.error('Erro ao carregar permissões do perfil:', error);
+      // Fallback para o perfil sem permissões
+      setEditingProfile(profile);
+      setFormData({
+        name: profile.name,
+        description: profile.description,
+        active: profile.active,
+        permissions: []
+      });
+      setShowForm(true);
+    }
   };
 
   const handleDelete = async (id) => {
