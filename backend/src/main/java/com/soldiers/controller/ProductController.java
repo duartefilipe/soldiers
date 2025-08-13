@@ -69,4 +69,14 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/create-test-products")
+    public ResponseEntity<String> createTestProducts() {
+        try {
+            productService.createTestProducts();
+            return ResponseEntity.ok("Produtos de teste criados com sucesso!");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Erro ao criar produtos de teste: " + e.getMessage());
+        }
+    }
 } 

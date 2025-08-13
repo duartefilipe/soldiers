@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { path: '/dashboard', icon: BarChart3, label: 'Dashboard', resource: 'DASHBOARD' },
+  { path: '/dashboard', icon: BarChart3, label: 'Dashboard', resource: null }, // Sem resource para sempre permitir
   { path: '/products', icon: Package, label: 'Produtos', resource: 'PRODUCTS' },
   { path: '/games', icon: Calendar, label: 'Jogos', resource: 'GAMES' },
   { path: '/sales', icon: ShoppingCart, label: 'Vendas', resource: 'SALES' },
@@ -46,6 +46,11 @@ export function Layout({ children }) {
   };
 
   const filteredMenuItems = menuItems.filter(item => {
+    // Dashboard sempre permitido
+    if (item.path === '/dashboard') {
+      return true;
+    }
+    
     // Se requer admin e não é admin, não mostra
     if (item.requireAdmin && !isAdmin()) {
       return false;

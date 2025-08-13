@@ -17,7 +17,7 @@ public class News {
     @Column(columnDefinition = "TEXT")
     private String content;
     
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String imageUrl;
     
     @Column(nullable = false)

@@ -8,10 +8,15 @@ import {
   Edit,
   Trash2,
   Filter,
-  Download
+  Download,
+  Search,
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '../services/api';
+import PermissionGate from '../components/PermissionGate';
 import { 
   BarChart, 
   Bar, 
@@ -35,6 +40,16 @@ export function Budget() {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [error, setError] = useState(null);
+
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const [formData, setFormData] = useState({
     description: '',
@@ -46,9 +61,37 @@ export function Budget() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   useEffect(() => {
-    loadBudgets();
-    loadBalance();
+    try {
+      loadBudgets();
+      loadBalance();
+    } catch (error) {
+      console.error('Erro ao carregar dados iniciais:', error);
+      setError('Erro ao carregar dados. Tente recarregar a página.');
+    }
   }, []);
+
+  // Se houver erro, mostrar tela de erro
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao carregar dados</h2>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              loadBudgets();
+              loadBalance();
+            }}
+            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const loadBudgets = async () => {
     try {
@@ -74,6 +117,34 @@ export function Budget() {
       setTotalExpenses(expensesRes.data || 0);
     } catch (error) {
       console.error('Erro ao carregar saldo:', error);
+    }
+  };
+
+  // Função para extrair nome do vendedor (movida para antes do uso)
+  const extractSellerName = (budget) => {
+    try {
+      // Se for uma venda (INCOME e descrição contém "Venda")
+      if (budget.type === 'INCOME' && 
+          budget.description && 
+          budget.description.includes('Venda')) {
+        
+        // Extrair nome do vendedor da descrição
+        if (budget.description.includes('Vendedor:')) {
+          const parts = budget.description.split('Vendedor:');
+          if (parts.length > 1) {
+            return parts[1].trim();
+          }
+        }
+        
+        // Se não encontrar na descrição, usar o nome do usuário
+        return budget.userName || 'Não informado';
+      }
+      
+      // Para outras movimentações (doações, etc.), mostrar o nome do usuário
+      return budget.userName || 'Não informado';
+    } catch (error) {
+      console.error('Erro ao extrair nome do vendedor:', error);
+      return 'Não informado';
     }
   };
 
@@ -160,10 +231,95 @@ export function Budget() {
     }
   };
 
-  const filteredBudgets = budgets.filter(budget => {
-    if (filter === 'ALL') return true;
-    return budget.type === filter;
-  });
+  // Função para filtrar dados
+  const getFilteredBudgets = () => {
+    try {
+      let filtered = budgets;
+
+      // Filtro por tipo
+      if (filter !== 'ALL') {
+        filtered = filtered.filter(budget => budget.type === filter);
+      }
+
+      // Filtro por busca
+      if (searchTerm) {
+        filtered = filtered.filter(budget => {
+          try {
+            const description = budget.description?.toLowerCase() || '';
+            const notes = budget.notes?.toLowerCase() || '';
+            const sellerName = extractSellerName(budget).toLowerCase();
+            const searchLower = searchTerm.toLowerCase();
+            
+            return description.includes(searchLower) ||
+                   notes.includes(searchLower) ||
+                   sellerName.includes(searchLower);
+          } catch (error) {
+            console.error('Erro ao filtrar por busca:', error);
+            return false;
+          }
+        });
+      }
+
+      // Filtro por data
+      if (startDate) {
+        filtered = filtered.filter(budget => {
+          try {
+            return new Date(budget.date) >= new Date(startDate);
+          } catch (error) {
+            console.error('Erro ao filtrar por data inicial:', error);
+            return false;
+          }
+        });
+      }
+
+      if (endDate) {
+        filtered = filtered.filter(budget => {
+          try {
+            return new Date(budget.date) <= new Date(endDate + 'T23:59:59');
+          } catch (error) {
+            console.error('Erro ao filtrar por data final:', error);
+            return false;
+          }
+        });
+      }
+
+      return filtered;
+    } catch (error) {
+      console.error('Erro ao filtrar dados:', error);
+      return budgets; // Retorna todos os dados em caso de erro
+    }
+  };
+
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStartDate('');
+    setEndDate('');
+    setFilter('ALL');
+    setCurrentPage(1);
+  };
+
+  // Dados filtrados
+  const filteredBudgets = getFilteredBudgets();
+
+  // Paginação
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredBudgets.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredBudgets.length / itemsPerPage);
+
+  // Funções de paginação
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
 
   const chartData = [
     { name: 'Entradas', value: totalIncome, color: '#00C49F' },
@@ -206,39 +362,19 @@ export function Budget() {
     }
   };
 
-  const extractSellerName = (budget) => {
-    // Se for uma venda (INCOME e descrição contém "Venda")
-    if (budget.type === 'INCOME' && 
-        budget.description && 
-        budget.description.includes('Venda')) {
-      
-      // Extrair nome do vendedor da descrição
-      if (budget.description.includes('Vendedor:')) {
-        const parts = budget.description.split('Vendedor:');
-        if (parts.length > 1) {
-          return parts[1].trim();
-        }
-      }
-      
-      // Se não encontrar na descrição, usar o nome do usuário
-      return budget.userName || 'Não informado';
-    }
-    
-    // Para outros tipos de movimentação, retornar vazio
-    return '';
-  };
-
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Orçamento</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Movimentação
-        </button>
+        <PermissionGate resource="BUDGET" action="EDIT">
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Movimentação
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Cards de Resumo */}
@@ -324,8 +460,70 @@ export function Budget() {
       {/* Filtros e Lista */}
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <h3 className="text-lg font-semibold">Movimentações</h3>
+            
+            {/* Filtros */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Busca */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Buscar movimentações..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* Filtro de Data */}
+              <div className="flex gap-2">
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Data inicial"
+                  />
+                </div>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Data final"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro de Tipo */}
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="ALL">Todos os tipos</option>
+                <option value="INCOME">Entradas</option>
+                <option value="EXPENSE">Gastos</option>
+              </select>
+
+              {/* Botão Limpar Filtros */}
+              {(searchTerm || startDate || endDate || filter !== 'ALL') && (
+                <button
+                  onClick={clearFilters}
+                  className="px-3 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Limpar Filtros
+                </button>
+              )}
+            </div>
+
+            {/* Botão Exportar */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleExportExcel}
@@ -335,17 +533,27 @@ export function Budget() {
                 <Download className="w-4 h-4" />
                 Exportar Excel
               </button>
-              <Filter className="w-4 h-4 text-gray-400" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2"
-              >
-                <option value="ALL">Todos</option>
-                <option value="INCOME">Entradas</option>
-                <option value="EXPENSE">Gastos</option>
-              </select>
             </div>
+          </div>
+
+          {/* Informações dos filtros */}
+          <div className="mt-4 text-sm text-gray-600">
+            {(() => {
+              try {
+                return (
+                  <>
+                    Mostrando {currentItems.length} de {filteredBudgets.length} movimentações
+                    {searchTerm && ` • Busca: "${searchTerm}"`}
+                    {startDate && ` • De: ${new Date(startDate).toLocaleDateString('pt-BR')}`}
+                    {endDate && ` • Até: ${new Date(endDate).toLocaleDateString('pt-BR')}`}
+                    {filter !== 'ALL' && ` • Tipo: ${filter === 'INCOME' ? 'Entradas' : 'Gastos'}`}
+                  </>
+                );
+              } catch (error) {
+                console.error('Erro ao renderizar informações dos filtros:', error);
+                return 'Erro ao carregar informações dos filtros';
+              }
+            })()}
           </div>
         </div>
 
@@ -374,61 +582,140 @@ export function Budget() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBudgets.map((budget) => (
-                <tr key={budget.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {budget.description}
-                      </div>
-                      {budget.notes && (
-                        <div className="text-sm text-gray-500">{budget.notes}</div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`text-sm font-medium ${
-                      budget.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      R$ {parseFloat(budget.amount).toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      budget.type === 'INCOME' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {budget.type === 'INCOME' ? 'Entrada' : 'Gasto'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(budget.date).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {extractSellerName(budget)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(budget)}
-                        className="text-primary-600 hover:text-primary-900"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(budget.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {currentItems.map((budget) => {
+                try {
+                  return (
+                    <tr key={budget.id}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {budget.description || 'Sem descrição'}
+                          </div>
+                          {budget.notes && (
+                            <div className="text-sm text-gray-500">{budget.notes}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`text-sm font-medium ${
+                          budget.type === 'INCOME' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          R$ {parseFloat(budget.amount || 0).toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          budget.type === 'INCOME' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {budget.type === 'INCOME' ? 'Entrada' : 'Gasto'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {budget.date ? new Date(budget.date).toLocaleDateString('pt-BR') : 'Data não informada'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {extractSellerName(budget)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <PermissionGate resource="BUDGET" action="EDIT">
+                            <button
+                              onClick={() => handleEdit(budget)}
+                              className="text-primary-600 hover:text-primary-900"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
+                          <PermissionGate resource="BUDGET" action="EDIT">
+                            <button
+                              onClick={() => handleDelete(budget.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                } catch (error) {
+                  console.error('Erro ao renderizar linha da tabela:', error);
+                  return (
+                    <tr key={budget.id || 'error'}>
+                      <td colSpan="6" className="px-6 py-4 text-center text-red-600">
+                        Erro ao carregar dados desta movimentação
+                      </td>
+                    </tr>
+                  );
+                }
+              })}
             </tbody>
           </table>
         </div>
+
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Página {currentPage} de {totalPages} • 
+                Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, filteredBudgets.length)} de {filteredBudgets.length} resultados
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                {/* Números das páginas */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    // Mostrar apenas algumas páginas para não ficar muito largo
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`px-3 py-1 rounded-lg ${
+                            currentPage === page
+                              ? 'bg-primary-600 text-white'
+                              : 'border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (
+                      page === currentPage - 2 ||
+                      page === currentPage + 2
+                    ) {
+                      return <span key={page} className="px-2">...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
+                
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal */}

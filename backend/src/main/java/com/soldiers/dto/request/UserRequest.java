@@ -13,8 +13,7 @@ public class UserRequest {
     @NotBlank
     private String email;
 
-    @NotBlank
-    private String password;
+    private String password; // Removido @NotBlank para permitir atualizações sem senha
 
     private String profileName; // Para compatibilidade
     private Set<String> profileNames; // Para múltiplos perfis

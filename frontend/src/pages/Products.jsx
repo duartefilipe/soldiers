@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PermissionGate from '../components/PermissionGate';
 
 export function Products() {
   const [products, setProducts] = useState([]);
@@ -104,13 +105,15 @@ export function Products() {
           <h1 className="text-2xl font-bold text-gray-900">Produtos</h1>
           <p className="text-gray-600">Gerencie o catálogo de produtos</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center mt-4 sm:mt-0"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Produto
-        </button>
+        <PermissionGate resource="PRODUCTS" action="EDIT">
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center mt-4 sm:mt-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Produto
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Busca */}
@@ -175,18 +178,22 @@ export function Products() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(product)}
-                      className="text-primary-600 hover:text-primary-900 mr-3"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <PermissionGate resource="PRODUCTS" action="EDIT">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="text-primary-600 hover:text-primary-900 mr-3"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </PermissionGate>
+                    <PermissionGate resource="PRODUCTS" action="EDIT">
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </PermissionGate>
                   </td>
                 </tr>
               ))}

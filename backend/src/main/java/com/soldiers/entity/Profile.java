@@ -1,5 +1,6 @@
 package com.soldiers.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -31,6 +32,7 @@ public class Profile {
     private Set<ProfilePermission> permissions = new HashSet<>();
 
     @ManyToMany(mappedBy = "profiles")
+    @JsonIgnore
     private Set<User> users = new HashSet<>();
 
     @Column(name = "criado_em")

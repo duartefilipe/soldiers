@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Plus, Edit, Trash2, Search, Calendar, MapPin, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PermissionGate from '../components/PermissionGate';
 
 export function Games() {
   const [games, setGames] = useState([]);
@@ -142,13 +143,15 @@ export function Games() {
           <h1 className="text-2xl font-bold text-gray-900">Jogos</h1>
           <p className="text-gray-600">Gerencie os eventos de jogo</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center mt-4 sm:mt-0"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Jogo
-        </button>
+        <PermissionGate resource="GAMES" action="EDIT">
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center mt-4 sm:mt-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Jogo
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Busca */}
@@ -173,18 +176,22 @@ export function Games() {
                 <p className="text-sm text-gray-600 mb-3">{game.description}</p>
               </div>
               <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(game)}
-                  className="text-primary-600 hover:text-primary-900"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(game.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <PermissionGate resource="GAMES" action="EDIT">
+                  <button
+                    onClick={() => handleEdit(game)}
+                    className="text-primary-600 hover:text-primary-900"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </PermissionGate>
+                <PermissionGate resource="GAMES" action="EDIT">
+                  <button
+                    onClick={() => handleDelete(game.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </PermissionGate>
               </div>
             </div>
 

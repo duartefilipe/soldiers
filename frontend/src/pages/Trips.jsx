@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '../services/api';
+import PermissionGate from '../components/PermissionGate';
 
 export function Trips() {
   const [trips, setTrips] = useState([]);
@@ -241,13 +242,15 @@ export function Trips() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Viagens</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Viagem
-        </button>
+        <PermissionGate resource="TRIPS" action="EDIT">
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Viagem
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Filtros */}
@@ -350,13 +353,15 @@ export function Trips() {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleEdit(trip)}
-                  className="text-primary-600 hover:text-primary-900"
-                  title="Editar viagem"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
+                <PermissionGate resource="TRIPS" action="EDIT">
+                  <button
+                    onClick={() => handleEdit(trip)}
+                    className="text-primary-600 hover:text-primary-900"
+                    title="Editar viagem"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                </PermissionGate>
                 <Link
                   to={`/trips/${trip.id}/budget`}
                   className="text-blue-600 hover:text-blue-900"
@@ -364,20 +369,24 @@ export function Trips() {
                 >
                   <Wallet className="w-4 h-4" />
                 </Link>
-                <button
-                  onClick={() => handleAddExpense(trip)}
-                  className="text-green-600 hover:text-green-900"
-                  title="Adicionar gasto"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(trip.id)}
-                  className="text-red-600 hover:text-red-900"
-                  title="Excluir viagem"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <PermissionGate resource="TRIPS" action="EDIT">
+                  <button
+                    onClick={() => handleAddExpense(trip)}
+                    className="text-green-600 hover:text-green-900"
+                    title="Adicionar gasto"
+                  >
+                    <PlusIcon className="w-4 h-4" />
+                  </button>
+                </PermissionGate>
+                <PermissionGate resource="TRIPS" action="EDIT">
+                  <button
+                    onClick={() => handleDelete(trip.id)}
+                    className="text-red-600 hover:text-red-900"
+                    title="Excluir viagem"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </PermissionGate>
               </div>
             </div>
           </div>

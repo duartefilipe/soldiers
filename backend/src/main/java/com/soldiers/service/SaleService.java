@@ -31,7 +31,7 @@ public class SaleService {
 
     @Transactional
     public Sale createSale(SaleRequest request, Long userId) {
-        User seller = userService.getUserById(userId);
+        User seller = userService.findByIdWithProfilesAndPermissions(userId);
         GameEvent gameEvent = gameEventRepository.findById(request.getGameEventId())
                 .orElseThrow(() -> new RuntimeException("Jogo não encontrado"));
 
@@ -44,7 +44,8 @@ public class SaleService {
                 throw new RuntimeException("Estoque insuficiente para o produto: " + product.getName());
             }
 
-            SaleItem saleItem = new SaleItem(product, itemRequest.getQuantity(), product.getPrice());
+            // Usar o preço enviado pelo frontend
+            SaleItem saleItem = new SaleItem(product, itemRequest.getQuantity(), itemRequest.getPrice());
             sale.addItem(saleItem);
             
             // Atualiza o estoque

@@ -1,5 +1,6 @@
 package com.soldiers.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.soldiers.entity.Sale;
 import com.soldiers.entity.SaleItem;
 
@@ -13,8 +14,13 @@ public class SaleResponse {
     private UserResponse seller;
     private GameEventResponse gameEvent;
     private BigDecimal totalAmount;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime criadoEm;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime atualizadoEm;
+    
     private List<SaleItemResponse> items;
 
     public SaleResponse() {}
@@ -282,64 +288,6 @@ public class SaleResponse {
 
         public void setStatus(String status) {
             this.status = status;
-        }
-    }
-
-    public static class UserResponse {
-        private Long id;
-        private String name;
-        private String email;
-        private String profileName;
-
-        public UserResponse() {}
-
-        public UserResponse(com.soldiers.entity.User user) {
-            this.id = user.getId();
-            this.name = user.getName();
-            this.email = user.getEmail();
-            this.profileName = user.getProfile() != null ? user.getProfile().getName() : "N/A";
-        }
-
-        // Getters e Setters
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getProfileName() {
-            return profileName;
-        }
-
-        public void setProfileName(String profileName) {
-            this.profileName = profileName;
-        }
-
-        // Método para compatibilidade
-        public String getRole() {
-            return profileName;
-        }
-
-        public void setRole(String role) {
-            this.profileName = role;
         }
     }
 } 

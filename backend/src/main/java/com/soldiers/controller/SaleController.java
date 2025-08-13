@@ -25,9 +25,9 @@ public class SaleController {
     }
 
     @PostMapping
-    public ResponseEntity<Sale> createSale(@Valid @RequestBody SaleRequest request) {
+    public ResponseEntity<SaleResponse> createSale(@Valid @RequestBody SaleRequest request) {
         Sale sale = saleService.createSale(request, request.getUserId());
-        return ResponseEntity.ok(sale);
+        return ResponseEntity.ok(new SaleResponse(sale));
     }
 
     @GetMapping

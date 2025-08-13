@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Arrays;
+import java.math.BigDecimal;
 
 @Service
 public class ProductService {
@@ -63,6 +65,27 @@ public class ProductService {
         Product product = getProductById(id);
         product.setDeletadoEm(LocalDateTime.now());
         productRepository.save(product);
+    }
+
+    public void createTestProducts() {
+        // Verificar se já existem produtos
+        List<Product> existingProducts = productRepository.findAllActive();
+        if (!existingProducts.isEmpty()) {
+            throw new RuntimeException("Já existem produtos cadastrados no sistema");
+        }
+
+        // Criar produtos de teste
+        List<Product> testProducts = Arrays.asList(
+            new Product("Camisa do Soldiers", "Camisa oficial do time Soldiers", new BigDecimal("89.90"), 50),
+            new Product("Boné do Soldiers", "Boné oficial do time Soldiers", new BigDecimal("29.90"), 30),
+            new Product("Caneca do Soldiers", "Caneca oficial do time Soldiers", new BigDecimal("19.90"), 25),
+            new Product("Chaveiro do Soldiers", "Chaveiro oficial do time Soldiers", new BigDecimal("9.90"), 40),
+            new Product("Adesivo do Soldiers", "Adesivo oficial do time Soldiers", new BigDecimal("4.90"), 60)
+        );
+
+        for (Product product : testProducts) {
+            productRepository.save(product);
+        }
     }
 
     public void updateStock(Long productId, Integer quantity) {

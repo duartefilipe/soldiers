@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Users, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { api } from '../services/api';
+import PermissionGate from '../components/PermissionGate';
 
 // Funções utilitárias movidas para fora dos componentes
 const getStatusColor = (status) => {
@@ -244,17 +245,19 @@ function PlayersTab({ players, onRefresh }) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Jogadores</h2>
-        <button
-          onClick={() => {
-            setEditingPlayer(null);
-            resetForm();
-            setShowModal(true);
-          }}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Jogador
-        </button>
+        <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+          <button
+            onClick={() => {
+              setEditingPlayer(null);
+              resetForm();
+              setShowModal(true);
+            }}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Jogador
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Lista de jogadores */}
@@ -325,18 +328,22 @@ function PlayersTab({ players, onRefresh }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(player)}
-                        className="text-primary-600 hover:text-primary-900"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(player.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+                        <button
+                          onClick={() => handleEdit(player)}
+                          className="text-primary-600 hover:text-primary-900"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </PermissionGate>
+                      <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+                        <button
+                          onClick={() => handleDelete(player.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </PermissionGate>
                     </div>
                   </td>
                 </tr>
@@ -545,17 +552,19 @@ function TeamsTab({ teams, players, onRefresh }) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">Times</h2>
-        <button
-          onClick={() => {
-            setEditingTeam(null);
-            resetForm();
-            setShowModal(true);
-          }}
-          className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Time
-        </button>
+        <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+          <button
+            onClick={() => {
+              setEditingTeam(null);
+              resetForm();
+              setShowModal(true);
+            }}
+            className="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Time
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Lista de times */}
@@ -601,18 +610,22 @@ function TeamsTab({ teams, players, onRefresh }) {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(team)}
-                        className="text-primary-600 hover:text-primary-900"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(team.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+                        <button
+                          onClick={() => handleEdit(team)}
+                          className="text-primary-600 hover:text-primary-900"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </PermissionGate>
+                      <PermissionGate resource="TEAM" action="EDIT" requireAdmin={true}>
+                        <button
+                          onClick={() => handleDelete(team.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </PermissionGate>
                     </div>
                   </td>
                 </tr>
