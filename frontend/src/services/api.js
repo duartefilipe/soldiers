@@ -1,8 +1,14 @@
 import axios from 'axios';
 
+// Configuração da API com fallback para desenvolvimento
+const API_URL = import.meta.env.VITE_API_URL || 'https://soldiersservice.share.zrok.io';
+
 const api = axios.create({
-  baseURL: 'http://localhost:8083',
+  baseURL: API_URL,
   timeout: 10000,
+  headers: {
+    'skip_zrok_interstitial': 'true'
+  }
 });
 
 export { api };
@@ -15,6 +21,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Garantir que o header skip_zrok_interstitial está sempre presente
+    config.headers['skip_zrok_interstitial'] = 'true';
     return config;
   },
   (error) => {

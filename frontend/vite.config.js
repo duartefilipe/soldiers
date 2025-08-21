@@ -7,13 +7,12 @@ export default defineConfig({
   server: {
     port: 8084,
     host: '0.0.0.0',
-    proxy: {
-      '/api': {
-        target: 'http://backend:8083',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'soldiers.share.zrok.io',
+      'soldiersservice.share.zrok.io',
+      '.zrok.io'
+    ]
   }
 }) 
