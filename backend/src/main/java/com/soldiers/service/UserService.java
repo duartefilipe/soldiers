@@ -33,8 +33,8 @@ public class UserService {
         try {
             System.out.println("Tentando fazer login para o email: " + request.getEmail());
             
-            // Primeiro tentar buscar com perfil
-            User user = userRepository.findByEmailWithProfile(request.getEmail())
+            // Buscar usuário com perfis e permissões carregadas
+            User user = userRepository.findByEmailWithProfilesAndPermissions(request.getEmail())
                     .orElseGet(() -> {
                         // Se não encontrar com perfil, tentar sem perfil
                         return userRepository.findByEmailAndDeletadoEmIsNull(request.getEmail())
@@ -113,6 +113,11 @@ public class UserService {
 
     public User getUserById(Long id) {
         return userRepository.findByIdWithProfile(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
+    public User findByIdWithProfilesAndPermissions(Long id) {
+        return userRepository.findByIdWithProfilesAndPermissions(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 

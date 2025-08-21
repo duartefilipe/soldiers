@@ -65,4 +65,16 @@ public class PlayerController {
         List<PlayerResponse> players = playerService.getPlayersByPosition(position);
         return ResponseEntity.ok(players);
     }
+
+    @PostMapping("/{playerId}/teams/{teamId}")
+    public ResponseEntity<PlayerResponse> addTeamToPlayer(@PathVariable Long playerId, @PathVariable Long teamId) {
+        PlayerResponse player = playerService.addTeamToPlayer(playerId, teamId);
+        return ResponseEntity.ok(player);
+    }
+
+    @DeleteMapping("/{playerId}/teams/{teamId}")
+    public ResponseEntity<PlayerResponse> removeTeamFromPlayer(@PathVariable Long playerId, @PathVariable Long teamId) {
+        PlayerResponse player = playerService.removeTeamFromPlayer(playerId, teamId);
+        return ResponseEntity.ok(player);
+    }
 }

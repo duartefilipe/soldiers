@@ -2,6 +2,7 @@ package com.soldiers.repository;
 
 import com.soldiers.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.profiles WHERE u.email = :email AND u.deletadoEm IS NULL")
     Optional<User> findByEmailWithProfile(@Param("email") String email);
 
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profiles p LEFT JOIN FETCH p.permissions WHERE u.email = :email AND u.deletadoEm IS NULL")
+    Optional<User> findByEmailWithProfilesAndPermissions(@Param("email") String email);
+
+    @Modifying
+    @Query(value = "DELETE FROM tb_user_profile WHERE profile_id = :profileId", nativeQuery = true)
+    void deleteUserProfileAssociations(@Param("profileId") Long profileId);
+
     @Query("SELECT DISTINCT u FROM User u WHERE u.deletadoEm IS NULL")
     List<User> findAllActive();
 
@@ -27,6 +35,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.profiles WHERE u.id = :id")
     Optional<User> findByIdWithProfile(@Param("id") Long id);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.profiles p LEFT JOIN FETCH p.permissions WHERE u.id = :id")
+    Optional<User> findByIdWithProfilesAndPermissions(@Param("id") Long id);
 
     @Query("SELECT u FROM User u JOIN u.profiles p WHERE p.id = :profileId AND u.deletadoEm IS NULL")
     List<User> findByProfileId(@Param("profileId") Long profileId);

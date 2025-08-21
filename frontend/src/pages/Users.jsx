@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../services/api';
+import PermissionGate from '../components/PermissionGate';
 
 export const Users = () => {
   const [users, setUsers] = useState([]);
@@ -155,13 +156,15 @@ export const Users = () => {
           <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
           <p className="text-gray-600">Gerencie os usuários do sistema</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn-primary flex items-center mt-4 sm:mt-0"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Usuário
-        </button>
+        <PermissionGate resource="USERS" action="EDIT" requireAdmin={true}>
+          <button
+            onClick={() => setShowModal(true)}
+            className="btn-primary flex items-center mt-4 sm:mt-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Usuário
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Busca */}
@@ -229,18 +232,22 @@ export const Users = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(user)}
-                      className="text-primary-600 hover:text-primary-900 mr-3"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <PermissionGate resource="USERS" action="EDIT" requireAdmin={true}>
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className="text-primary-600 hover:text-primary-900 mr-3"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                    </PermissionGate>
+                    <PermissionGate resource="USERS" action="EDIT" requireAdmin={true}>
+                      <button
+                        onClick={() => handleDelete(user.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </PermissionGate>
                   </td>
                 </tr>
               ))}

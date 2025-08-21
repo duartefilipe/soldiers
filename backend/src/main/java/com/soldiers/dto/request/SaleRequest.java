@@ -65,12 +65,17 @@ public class SaleRequest {
         @Positive
         private Integer quantity;
 
+        @NotNull
+        @Positive
+        private java.math.BigDecimal price;
+
         // Construtores
         public SaleItemRequest() {}
 
-        public SaleItemRequest(Long productId, Integer quantity) {
+        public SaleItemRequest(Long productId, Integer quantity, java.math.BigDecimal price) {
             this.productId = productId;
             this.quantity = quantity;
+            this.price = price;
         }
 
         // Getters e Setters
@@ -88,6 +93,14 @@ public class SaleRequest {
 
         public void setQuantity(Integer quantity) {
             this.quantity = quantity;
+        }
+
+        public java.math.BigDecimal getPrice() {
+            return price;
+        }
+
+        public void setPrice(java.math.BigDecimal price) {
+            this.price = price;
         }
     }
 } 

@@ -1,23 +1,28 @@
 package com.soldiers.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.soldiers.entity.User;
 import com.soldiers.entity.Profile;
+import com.soldiers.entity.ProfilePermission;
 
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserResponse {
-
     private Long id;
     private String name;
     private String email;
     private boolean active;
-    private ProfileSummaryResponse profile; // Para compatibilidade
-    private Set<ProfileSummaryResponse> profiles; // Para múltiplos perfis
     private LocalDateTime criadoEm;
     private LocalDateTime atualizadoEm;
     private LocalDateTime deletadoEm;
+    private ProfileSummaryResponse profile;
+    private Set<ProfileSummaryResponse> profiles;
+    private List<String> permissions;
 
     public UserResponse() {}
 
@@ -49,6 +54,18 @@ public class UserResponse {
         for (Profile profile : user.getProfiles()) {
             this.profiles.add(new ProfileSummaryResponse(profile));
         }
+        
+        // Carregar permissões de todos os perfis
+        this.permissions = new ArrayList<>();
+        for (Profile profile : user.getProfiles()) {
+            if (profile.getPermissions() != null) {
+                for (ProfilePermission permission : profile.getPermissions()) {
+                    if (permission.isActive()) {
+                        this.permissions.add(permission.getResource() + ":" + permission.getAction());
+                    }
+                }
+            }
+        }
     }
 
     // Getters and Setters
@@ -60,22 +77,26 @@ public class UserResponse {
     public void setEmail(String email) { this.email = email; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public ProfileSummaryResponse getProfile() { return profile; }
-    public void setProfile(ProfileSummaryResponse profile) { this.profile = profile; }
-    public Set<ProfileSummaryResponse> getProfiles() { return profiles; }
-    public void setProfiles(Set<ProfileSummaryResponse> profiles) { this.profiles = profiles; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
     public void setCriadoEm(LocalDateTime criadoEm) { this.criadoEm = criadoEm; }
     public LocalDateTime getAtualizadoEm() { return atualizadoEm; }
     public void setAtualizadoEm(LocalDateTime atualizadoEm) { this.atualizadoEm = atualizadoEm; }
     public LocalDateTime getDeletadoEm() { return deletadoEm; }
     public void setDeletadoEm(LocalDateTime deletadoEm) { this.deletadoEm = deletadoEm; }
+    public ProfileSummaryResponse getProfile() { return profile; }
+    public void setProfile(ProfileSummaryResponse profile) { this.profile = profile; }
+    public Set<ProfileSummaryResponse> getProfiles() { return profiles; }
+    public void setProfiles(Set<ProfileSummaryResponse> profiles) { this.profiles = profiles; }
+    public List<String> getPermissions() { return permissions; }
+    public void setPermissions(List<String> permissions) { this.permissions = permissions; }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProfileSummaryResponse {
         private Long id;
         private String name;
         private String description;
         private boolean active;
+        private List<PermissionResponse> permissions;
 
         public ProfileSummaryResponse() {}
 
@@ -84,6 +105,18 @@ public class UserResponse {
             this.name = profile.getName();
             this.description = profile.getDescription();
             this.active = profile.isActive();
+            
+            // Carregar permissões se disponíveis
+            if (profile.getPermissions() != null && !profile.getPermissions().isEmpty()) {
+                this.permissions = new ArrayList<>();
+                for (ProfilePermission permission : profile.getPermissions()) {
+                    if (permission.isActive()) {
+                        this.permissions.add(new PermissionResponse(permission));
+                    }
+                }
+            } else {
+                this.permissions = new ArrayList<>();
+            }
         }
 
         // Getters and Setters
@@ -93,6 +126,35 @@ public class UserResponse {
         public void setName(String name) { this.name = name; }
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
+        public boolean isActive() { return active; }
+        public void setActive(boolean active) { this.active = active; }
+        public List<PermissionResponse> getPermissions() { return permissions; }
+        public void setPermissions(List<PermissionResponse> permissions) { this.permissions = permissions; }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PermissionResponse {
+        private Long id;
+        private String resource;
+        private String action;
+        private boolean active;
+
+        public PermissionResponse() {}
+
+        public PermissionResponse(ProfilePermission permission) {
+            this.id = permission.getId();
+            this.resource = permission.getResource();
+            this.action = permission.getAction();
+            this.active = permission.isActive();
+        }
+
+        // Getters and Setters
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+        public String getResource() { return resource; }
+        public void setResource(String resource) { this.resource = resource; }
+        public String getAction() { return action; }
+        public void setAction(String action) { this.action = action; }
         public boolean isActive() { return active; }
         public void setActive(boolean active) { this.active = active; }
     }

@@ -37,6 +37,16 @@ public class ProfileController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<String>> getUsersByProfile(@PathVariable Long id) {
+        try {
+            List<String> users = profileService.getUsersByProfile(id);
+            return ResponseEntity.ok(users);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(List.of("Erro: " + e.getMessage()));
+        }
+    }
+
     @PostMapping
     public ResponseEntity<ProfileResponse> createProfile(@Valid @RequestBody ProfileRequest request) {
         try {
@@ -57,13 +67,23 @@ public class ProfileController {
         }
     }
 
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<String> deactivateProfile(@PathVariable Long id) {
+        try {
+            profileService.deactivateProfile(id);
+            return ResponseEntity.ok("Perfil desativado com sucesso");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Erro ao desativar perfil: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProfile(@PathVariable Long id) {
+    public ResponseEntity<String> deleteProfile(@PathVariable Long id) {
         try {
             profileService.deleteProfile(id);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Perfil deletado com sucesso");
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Erro ao deletar perfil: " + e.getMessage());
         }
     }
 

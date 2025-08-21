@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.soldiers.entity.User;
+import com.soldiers.repository.UserRepository;
 
 @Service
 public class ProfileService {
@@ -22,6 +24,9 @@ public class ProfileService {
 
     @Autowired
     private ProfilePermissionRepository permissionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<ProfileResponse> getAllProfiles() {
         return profileRepository.findAllActiveWithPermissions()
@@ -140,12 +145,39 @@ public class ProfileService {
         }
 
         // Verificar se há usuários usando este perfil
-        if (!profile.getUsers().isEmpty()) {
-            throw new RuntimeException("Não é possível deletar perfil que possui usuários associados");
+        // Primeiro, vamos recarregar o perfil com os usuários
+        Profile profileWithUsers = profileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+        
+        if (profileWithUsers.getUsers() != null && !profileWithUsers.getUsers().isEmpty()) {
+            System.out.println("Removendo perfil de " + profileWithUsers.getUsers().size() + " usuários associados.");
+            
+            // Remover o perfil de todos os usuários associados
+            for (User user : profileWithUsers.getUsers()) {
+                user.getProfiles().remove(profile);
+                userRepository.save(user);
+            }
+            userRepository.flush();
         }
 
+        // Se chegou até aqui, pode deletar o perfil
+        // Primeiro, remover todas as permissões associadas
+        List<ProfilePermission> permissions = permissionRepository.findByProfileId(id);
+        if (!permissions.isEmpty()) {
+            permissionRepository.deleteAll(permissions);
+            permissionRepository.flush();
+        }
+
+        // Em vez de deletar, vamos desativar o perfil
         profile.setActive(false);
         profileRepository.save(profile);
+        profileRepository.flush();
+        
+        // Forçar commit da transação
+        profileRepository.saveAndFlush(profile);
+        
+        // Retornar sucesso em vez de lançar exceção
+        return;
     }
 
     @Transactional
@@ -202,5 +234,28 @@ public class ProfileService {
     public boolean hasPermission(Long profileId, String resource, String action) {
         ProfilePermission permission = permissionRepository.findByProfileIdAndResourceAndAction(profileId, resource, action);
         return permission != null && permission.isActive();
+    }
+
+    public List<String> getUsersByProfile(Long profileId) {
+        Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+        
+        return profile.getUsers().stream()
+                .map(User::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deactivateProfile(Long id) {
+        Profile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Perfil não encontrado"));
+
+        if ("ADMIN".equals(profile.getName())) {
+            throw new RuntimeException("Não é possível desativar o perfil ADMIN");
+        }
+
+        profile.setActive(false);
+        profileRepository.save(profile);
+        profileRepository.flush();
     }
 }

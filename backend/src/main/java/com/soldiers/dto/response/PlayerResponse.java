@@ -30,7 +30,36 @@ public class PlayerResponse {
         this.criadoEm = player.getCriadoEm();
         this.atualizadoEm = player.getAtualizadoEm();
         this.teamCount = player.getTeams().size();
-        this.teams = null; // Temporariamente removido para evitar referência circular
+        
+        // Incluir times se disponíveis
+        if (player.getTeams() != null && !player.getTeams().isEmpty()) {
+            this.teams = player.getTeams().stream()
+                    .map(team -> new TeamResponse(team, false)) // false = não incluir jogadores para evitar circular
+                    .collect(Collectors.toList());
+        } else {
+            this.teams = new ArrayList<>();
+        }
+    }
+
+    // Construtor para evitar referência circular
+    public PlayerResponse(Player player, boolean includeTeams) {
+        this.id = player.getId();
+        this.name = player.getName();
+        this.position = player.getPosition();
+        this.number = player.getNumber();
+        this.description = player.getDescription();
+        this.status = player.getStatus().toString();
+        this.criadoEm = player.getCriadoEm();
+        this.atualizadoEm = player.getAtualizadoEm();
+        this.teamCount = player.getTeams().size();
+        
+        if (includeTeams && player.getTeams() != null && !player.getTeams().isEmpty()) {
+            this.teams = player.getTeams().stream()
+                    .map(team -> new TeamResponse(team, false))
+                    .collect(Collectors.toList());
+        } else {
+            this.teams = new ArrayList<>();
+        }
     }
 
     // Getters e Setters

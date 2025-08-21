@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { Plus, Edit, Trash2, Calendar, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PermissionGate from '../components/PermissionGate';
 
 export function News() {
   const [news, setNews] = useState([]);
@@ -33,11 +34,30 @@ export function News() {
     e.preventDefault();
     
     try {
+      // Limpar URL do Google se necessário
+      let cleanImageUrl = formData.imageUrl;
+      if (cleanImageUrl && cleanImageUrl.includes('google.com/url')) {
+        try {
+          const url = new URL(cleanImageUrl);
+          const urlParam = url.searchParams.get('url');
+          if (urlParam) {
+            cleanImageUrl = decodeURIComponent(urlParam);
+          }
+        } catch (error) {
+          console.warn('Erro ao processar URL do Google:', error);
+        }
+      }
+      
+      const dataToSend = {
+        ...formData,
+        imageUrl: cleanImageUrl
+      };
+      
       if (editingNews) {
-        await api.put(`/news/${editingNews.id}`, formData);
+        await api.put(`/news/${editingNews.id}`, dataToSend);
         toast.success('Notícia atualizada com sucesso!');
       } else {
-        await api.post('/news', formData);
+        await api.post('/news', dataToSend);
         toast.success('Notícia criada com sucesso!');
       }
       
@@ -89,13 +109,15 @@ export function News() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Gerenciar Notícias</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="btn-primary flex items-center space-x-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Nova Notícia</span>
-        </button>
+        <PermissionGate resource="NEWS" action="EDIT">
+          <button
+            onClick={() => setShowForm(true)}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nova Notícia</span>
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Form */}
@@ -204,20 +226,24 @@ export function News() {
                 </div>
                 
                 <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="btn-secondary flex items-center space-x-1"
-                  >
-                    <Edit className="w-4 h-4" />
-                    <span>Editar</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="btn-danger flex items-center space-x-1"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Excluir</span>
-                  </button>
+                  <PermissionGate resource="NEWS" action="EDIT">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="btn-secondary flex items-center space-x-1"
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span>Editar</span>
+                    </button>
+                  </PermissionGate>
+                  <PermissionGate resource="NEWS" action="EDIT">
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="btn-danger flex items-center space-x-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Excluir</span>
+                    </button>
+                  </PermissionGate>
                 </div>
               </div>
             </div>
